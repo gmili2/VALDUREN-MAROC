@@ -129,7 +129,7 @@ export class SeoController {
     const colors = [...new Set(variants.flatMap((v) => v.values.map((x) => x.optionValue.label)))];
     const pageUrl = `${this.origin}/produit/${p.slug}`;
     const text = (p.shortDescription ? p.shortDescription + '. ' : '') + p.description;
-    const description = clip(`${p.name} à ${fmtDh(low)}${low !== high ? ' et plus' : ''}. ${text} ${PITCH}`.replace(/\s+/g, ' '), 300);
+    const description = clip(`${p.name} à ${fmtDh(high)}${low !== high ? ` (échantillon 2 ml dès ${fmtDh(low)})` : ''}. ${text} ${PITCH}`.replace(/\s+/g, ' '), 300);
     const availability = `https://schema.org/${inStock ? 'InStock' : 'OutOfStock'}`;
     const shipping = {
       '@type': 'OfferShippingDetails',
@@ -159,9 +159,9 @@ export class SeoController {
       ],
     };
     const body = `<main><h1>${esc(p.name)}</h1>${images[0] ? `<img src="${esc(images[0])}" alt="${esc(p.name)}" width="400" />` : ''}`
-      + `<p>${esc(fmtDh(low))}${low !== high ? ' et plus' : ''} · ${inStock ? 'En stock' : 'Épuisé'}</p><p>${esc(text)}</p>`
+      + `<p>${esc(fmtDh(high))}${low !== high ? esc(` · échantillon dès ${fmtDh(low)}`) : ''} · ${inStock ? 'En stock' : 'Épuisé'}</p><p>${esc(text)}</p>`
       + `${colors.length ? `<p>Couleurs et tailles : ${esc(colors.join(', '))}</p>` : ''}<p>${esc(PITCH)}</p><p><a href="/produits">Toute la boutique</a></p></main>`;
-    return send({ title: `${p.name} — ${fmtDh(low)} — ${SHOP}`, description, path: `/produit/${p.slug}`, image: images[0], type: 'product', jsonLd: [product, crumbs], body });
+    return send({ title: `${p.name} — ${fmtDh(high)} — ${SHOP}`, description, path: `/produit/${p.slug}`, image: images[0], type: 'product', jsonLd: [product, crumbs], body });
   }
 
   @Get('sitemap.xml')
