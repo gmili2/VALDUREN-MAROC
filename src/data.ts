@@ -1,4 +1,4 @@
-export type CategoryId = 'all' | 'homme' | 'femme' | 'vestes' | 'hauts' | 'pantalons' | 'robes' | 'accessoires' | 'new' | 'promo';
+export type CategoryId = 'all' | 'homme' | 'femme' | 'unisexe' | 'edp' | 'extraits' | 'coffrets' | 'new' | 'promo';
 
 export interface Swatch {
   label: string;
@@ -21,7 +21,7 @@ export interface Product {
   id: string; // slug, utilisé dans les URL
   sku: string;
   name: string;
-  brand?: string; // grande maison (absent pour les articles VASYCIAO)
+  brand: string; // maison de parfum (Valduren, Francesca Bianchi…)
   col: string;
   kind: string;
   cats: Exclude<CategoryId, 'all'>[];
@@ -50,31 +50,30 @@ export interface Product {
 }
 
 export const CATS: Record<CategoryId, [string, string]> = {
-  all: ['Shop', 'Du noir, du blanc, et des coupes qui tiennent. Pour femme et homme.'],
-  homme: ['Homme', 'Vestes, chemises, pulls et pantalons pour homme.'],
-  femme: ['Femme', 'Tailleurs, vestes, blouses, robes et pantalons pour femme.'],
-  vestes: ['Vestes', 'Tailleurs, vestes chemises et vestes militaires.'],
-  hauts: ['Hauts', 'T-shirts, chemises, blouses, pulls et hoodies.'],
-  pantalons: ['Pantalons', 'Pantalons larges à pinces et pantalons tailleur.'],
-  robes: ['Robes', 'Robes longues et fluides.'],
-  accessoires: ['Accessoires', 'Sacs et accessoires Vasyciao.'],
-  new: ['Nouveautés', 'Les dernières pièces arrivées en boutique.'],
+  all: ['La collection', 'Eaux de parfum et extraits : la maison Valduren et nos maisons invitées.'],
+  homme: ['Homme', 'Les parfums pour homme, et les créations unisexes.'],
+  femme: ['Femme', 'Les parfums pour femme, et les créations unisexes.'],
+  unisexe: ['Unisexe', 'Des parfums qui se portent sans distinction.'],
+  edp: ['Eaux de parfum', 'Un sillage qui dure toute la journée.'],
+  extraits: ['Extraits', 'La concentration la plus riche, pour un parfum intense et tenace.'],
+  coffrets: ['Coffrets', 'Coffrets et échantillons 2 ml, pour trouver votre signature ou offrir.'],
+  new: ['Nouveautés', 'Les derniers parfums arrivés à la maison.'],
   promo: ['Promos', 'Les meilleures affaires du moment.'],
 };
 
 /** Rayons de la page Collections. */
 export const COLLECTIONS: { id: CategoryId; label: string; sub: string; img: string }[] = [
-  { id: 'vestes', label: 'Vestes', sub: 'Tailleurs, vestes chemises, militaires', img: 'vestes' },
-  { id: 'hauts', label: 'Hauts', sub: 'T-shirts, chemises, pulls', img: 'hauts' },
-  { id: 'pantalons', label: 'Pantalons', sub: 'Larges, à pinces, tailleur', img: 'pantalons' },
-  { id: 'robes', label: 'Robes', sub: 'Longues et fluides', img: 'robes' },
+  { id: 'edp', label: 'Eaux de parfum', sub: 'Un sillage pour toute la journée', img: 'eau de parfum' },
+  { id: 'extraits', label: 'Extraits', sub: 'La concentration la plus riche', img: 'extrait' },
+  { id: 'coffrets', label: 'Coffrets', sub: 'Échantillons 2 ml et coffrets cadeaux', img: 'coffret' },
 ];
 
 export const FAQ: [string, string][] = [
   ['Quels sont les délais de livraison ?', 'Expédition sous 24 h ouvrées, livraison en 2 à 4 jours partout au Maroc.'],
-  ['Comment choisir ma taille ?', 'Nos vestes, pulls et t-shirts ont une coupe ample : prenez votre taille habituelle pour l\u2019effet oversize, une taille en dessous pour un tombé plus ajusté. Les pantalons tailleur taillent normalement.'],
-  ['Puis-je échanger une taille ?', 'Oui, sous 7 jours après réception, si l\u2019article n\u2019a pas été porté et garde ses étiquettes.'],
-  ['Comment entretenir mes pièces ?', 'Chaque fiche produit indique la matière et l\u2019entretien conseillé. Lavez le noir sur l\u2019envers, à 30 °C, pour qu\u2019il garde sa profondeur.'],
+  ['Comment choisir sans sentir ?', 'Commandez d\u2019abord l\u2019échantillon 2 ml du parfum qui vous attire : un vaporisateur à glisser dans la poche, pour le porter quelques jours avant d\u2019adopter le flacon. Un échantillon 2 ml est aussi offert avec chaque commande.'],
+  ['Vos parfums sont-ils authentiques ?', 'Oui. Nous vendons uniquement des flacons neufs et scellés, la maison Valduren et des maisons de parfumerie de niche (Francesca Bianchi, Ramón Béjar).'],
+  ['Puis-je retourner un parfum ?', 'Un flacon scellé peut être échangé ou remboursé sous 7 jours après réception. Pour des raisons d\u2019hygiène, un flacon ouvert ne peut pas être repris : testez d\u2019abord l\u2019échantillon.'],
+  ['Comment conserver mon parfum ?', 'À l\u2019abri de la lumière et de la chaleur, bouchon fermé, idéalement dans sa boîte. Évitez la salle de bain et la voiture en plein soleil.'],
   ['Quels moyens de paiement acceptez-vous ?', 'Le paiement à la livraison, en espèces à la réception du colis, ou le virement bancaire : la commande est alors expédiée dès réception du virement.'],
 ];
 
@@ -83,12 +82,12 @@ export const LEGAL: Record<'cgv' | 'privacy', { title: string; updated: string; 
     title: 'Conditions générales de vente',
     updated: 'Mise à jour : octobre 2026',
     sections: [
-      ['Objet', 'Les présentes conditions régissent les ventes de vêtements et accessoires réalisées sur le site VASYCIAO auprès de clients particuliers.'],
+      ['Objet', 'Les présentes conditions régissent les ventes de parfums et coffrets réalisées sur le site VALDUREN auprès de clients particuliers.'],
       ['Prix', 'Les prix sont indiqués en dirhams marocains (DH), toutes taxes et livraison comprises, partout au Maroc.'],
       ['Commande', 'La commande est enregistrée dès sa validation sur le site ; nous vous contactons par téléphone pour la confirmer. Elle récapitule les articles, le prix et l\u2019adresse de livraison.'],
       ['Paiement', 'Le paiement s\u2019effectue à la livraison, en espèces, ou par virement bancaire avant expédition. En cas de virement, la commande est expédiée dès réception des fonds.'],
       ['Livraison', 'Les articles sont expédiés sous 24 h ouvrées (après réception du virement le cas échéant), assurées pendant le transport et remises en main propre.'],
-      ['Rétractation', 'Vous disposez de 30 jours à compter de la réception pour échanger un article non porté, dans son emballage d\u2019origine.'],
+      ['Rétractation', 'Vous disposez de 7 jours à compter de la réception pour échanger ou retourner un flacon scellé, dans son emballage d\u2019origine. Pour des raisons d\u2019hygiène, un flacon ouvert ne peut être repris.'],
       ['Garantie', 'Nos articles bénéficient des garanties légales de conformité et des vices cachés.'],
     ],
   },
@@ -101,23 +100,23 @@ export const LEGAL: Record<'cgv' | 'privacy', { title: string; updated: string; 
       ['Conservation', 'Les données sont conservées pendant la durée de la relation commerciale, puis archivées selon les obligations légales.'],
       ['Vos droits', 'Vous disposez d\u2019un droit d\u2019accès, de rectification, d\u2019effacement et d\u2019opposition, exerçable à tout moment auprès de notre service client.'],
       ['Cookies', 'Des cookies techniques assurent le fonctionnement du site ; les cookies de mesure d\u2019audience ne sont déposés qu\u2019avec votre consentement.'],
-      ['Contact', 'Pour toute question relative à vos données : contact@vasyciao.ma.'],
+      ['Contact', 'Pour toute question relative à vos données : contact@valduren.ma.'],
     ],
   },
 };
 
 export const PILLARS = [
-  { n: '01', t: 'Livraison rapide', d: '2 à 4 jours partout au Maroc.' },
-  { n: '02', t: 'Échange de taille', d: 'Sous 7 jours, article non porté.' },
+  { n: '01', t: 'Livraison soignée', d: '2 à 4 jours partout au Maroc.' },
+  { n: '02', t: 'Échantillon offert', d: '2 ml avec chaque commande.' },
   { n: '03', t: 'Paiement à la livraison', d: 'Ou par virement bancaire.' },
-  { n: '04', t: 'Service client', d: 'On répond à tes questions.' },
+  { n: '04', t: 'Conseil parfum', d: 'Nous vous aidons à choisir.' },
 ];
 
 /** Prix en dirhams marocains : « 13 900 DH ». */
 export const fmt = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' DH';
 export const stars = (r: number) => '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
 export const ratingF = (r: number) => r.toFixed(1).replace('.', ',');
-export const refOf = (p: Product) => 'VC-' + p.id.slice(0, 6).toUpperCase();
+export const refOf = (p: Product) => 'VD-' + p.id.slice(0, 6).toUpperCase();
 export const isNew = (p: Product) => p.cats.includes('new');
 export const badgeOf = (p: Product) =>
   p.old ? '−' + Math.round((1 - p.price / p.old) * 100) + ' %' : isNew(p) ? 'Nouveau' : '';

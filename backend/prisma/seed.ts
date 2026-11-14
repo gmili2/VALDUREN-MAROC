@@ -39,7 +39,7 @@ const ORDERS: [number: string, email: string, date: string, items: [slug: string
   ['VC-284112', 'ines.moreau@mail.fr', '04/10/2026 16:11', [['robe-plissee', 1, 'S']], 'DELIVERED', 'CASH_ON_DELIVERY', 'Payé'],
   ['VC-284111', 'k.benali@mail.fr', '03/10/2026 12:38', [['chemise-rayee', 1, 'Rayé bleu · L']], 'CANCELLED', 'CASH_ON_DELIVERY', 'Échoué'],
   ['VC-284110', 'julie.l@mail.fr', '02/10/2026 20:04', [['pantalon-tailleur', 1, 'Noir · 36']], 'REFUNDED', 'BANK_TRANSFER', 'Remboursé'],
-  ['VC-284109', 'a.leroy@mail.fr', '01/10/2026 08:47', [['veste-chemise', 1, 'Noir · L'], ['tote-bag-vasyciao', 1, 'Noir']], 'DELIVERED', 'CASH_ON_DELIVERY', 'Payé'],
+  ['VC-284109', 'a.leroy@mail.fr', '01/10/2026 08:47', [['veste-chemise', 1, 'Noir · L'], ['tote-bag-valduren', 1, 'Noir']], 'DELIVERED', 'CASH_ON_DELIVERY', 'Payé'],
 ];
 const FLOW: OrderStatus[] = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
 
@@ -63,7 +63,7 @@ async function reset() {
 }
 
 async function main() {
-  const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@vasyciao.ma';
+  const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@valduren.ma';
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!adminPassword || adminPassword.length < 10) throw new Error('ADMIN_PASSWORD (10 caractères min.) doit être défini dans .env');
 
@@ -72,7 +72,7 @@ async function main() {
   const admin = await prisma.user.create({
     data: {
       email: adminEmail, passwordHash: await hashPassword(adminPassword),
-      firstName: 'Admin', lastName: 'VASYCIAO', role: 'ADMIN', emailVerifiedAt: new Date(),
+      firstName: 'Admin', lastName: 'VALDUREN', role: 'ADMIN', emailVerifiedAt: new Date(),
     },
   });
 

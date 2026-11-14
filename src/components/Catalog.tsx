@@ -6,55 +6,45 @@ import { productPath, shopPath } from '../routes';
 import { useStore } from '../store';
 import { ArrowIcon } from './icons';
 
-/** Silhouettes des rayons — visuel provisoire tant qu'un article n'a pas de photo. */
-export const ICONS = {
-  // Veste, t-shirt, pantalon, robe, sac.
-  vestes: 'M8 3l4 3 4-3 5 3-2 5-2-1v11H7V10l-2 1-2-5 5-3zM12 6v15',
-  hauts: 'M8 3h2c.5 2 1.2 3 2 3s1.5-1 2-3h2l5 3-2 4-3-1v12H8V9l-3 1-2-4 5-3z',
-  pantalons: 'M7 3h10l-1 18h-3l-1-12-1 12H8L7 3z',
-  robes: 'M9 3h6l-1 4 4 14H6l4-14-1-4z',
-  accessoires: 'M4 9h16v10a1 1 0 01-1 1H5a1 1 0 01-1-1V9zM9 9V6a3 3 0 016 0v3M4 13h16',
-};
-export const iconOf = (p: Pick<Product, 'cats'>) =>
-  ICONS[(p.cats.find((c) => c in ICONS) as keyof typeof ICONS | undefined) ?? 'hauts'];
-
-export function Dial({ size = '50%', path = ICONS.hauts }: { size?: string; dark?: boolean; path?: string }) {
+/** Flacon dessiné (filet doré) : visuel provisoire tant qu'un parfum n'a pas de photo. */
+export function Dial({ size = '30%' }: { size?: string; dark?: boolean; path?: string }) {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#5A5A58" strokeWidth="1" strokeLinejoin="round" style={{ width: size, maxWidth: 120 }}>
-      <path d={path} />
-    </svg>
+    <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: size, maxWidth: 90 }}>
+      <svg aria-hidden="true" viewBox="0 0 24 32" fill="none" stroke="#E2A75E" strokeWidth="0.7" strokeLinejoin="round" style={{ width: '100%' }}>
+        <rect x="9.5" y="1" width="5" height="5" rx="0.6" /><path d="M10.5 6h3v3h-3z" /><rect x="3.5" y="9" width="17" height="21" rx="1.5" />
+      </svg>
+    </span>
   );
 }
+export const iconOf = (_p: Pick<Product, 'cats'>) => '';
 
-/** Public de l'article : femme, homme ou les deux. */
+/** Public du parfum : homme, femme ou unisexe. */
 export const whoOf = (p: Pick<Product, 'cats'>) =>
-  p.cats.includes('femme') && p.cats.includes('homme') ? 'Mixte' : p.cats.includes('femme') ? 'Femme' : p.cats.includes('homme') ? 'Homme' : '';
-
-const mono: React.CSSProperties = { fontFamily: 'var(--mono)' };
+  p.cats.includes('unisexe') || (p.cats.includes('femme') && p.cats.includes('homme')) ? 'Unisexe' : p.cats.includes('femme') ? 'Femme' : p.cats.includes('homme') ? 'Homme' : '';
 
 export function ProductCard({ p }: { p: Product }) {
+  const L = useLayout();
   const navigate = useNavigate();
   const { add } = useStore();
-  const { products } = useCatalog();
-  const n = products.findIndex((x) => x.id === p.id) + 1;
-  const tag = (p.inStock ? badgeOf(p) : 'Épuisé') || whoOf(p);
+  const badge = p.inStock ? badgeOf(p) : 'Épuisé';
   const needsChoice = p.variants.length > 1;
+  const featured = p.brand === 'Valduren';
   return (
-    <article className="card" style={{ background: 'var(--ivory)', padding: 16, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
-      <div style={{ ...mono, display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 12, color: 'var(--graphite)', textTransform: 'uppercase' }}>
-        <span>N° {String(n || 0).padStart(3, '0')}</span><span>{tag}</span>
-      </div>
-      <Link to={productPath(p.id)} aria-label={p.name} style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', aspectRatio: '3 / 4', background: 'var(--stone)', overflow: 'hidden' }}>
+    <article className="card" style={{ background: '#17140F', border: '1px solid var(--line)', padding: 14, display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
+      <Link to={productPath(p.id)} aria-label={p.name} style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', aspectRatio: '1 / 1', background: p.image ? '#1A0F06' : '#17140F', border: `1px solid ${featured ? '#E2A75E' : '#3A3024'}`, overflow: 'hidden' }}>
         {p.image
-          ? <img className="zoom-hover" src={p.image} alt={p.name} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
-          : <Dial size="34%" path={iconOf(p)} />}
+          ? <img className="zoom-hover" src={p.image} alt={`Flacon ${p.name} de ${p.brand}`} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%', display: 'block' }} />
+          : <Dial size="22%" />}
+        {badge && <span style={{ position: 'absolute', zIndex: 2, top: 12, left: 12, background: '#E2A75E', color: '#0E0D0C', fontSize: 10, fontWeight: 600, letterSpacing: '.18em', padding: '5px 8px', textTransform: 'uppercase' }}>{badge}</span>}
       </Link>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
+        <span style={{ fontSize: 11, letterSpacing: '.22em', color: 'var(--graphite)', textTransform: 'uppercase' }}>{p.brand}</span>
         {/* Vrai lien : les moteurs de recherche suivent les liens pour trouver les fiches. */}
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.02em', lineHeight: 1.25 }}>
+        <h3 style={{ margin: 0, fontFamily: 'var(--display-font)', fontWeight: 400, fontSize: L.mobile ? 18 : 22, letterSpacing: '.04em', lineHeight: 1.2 }}>
           <Link to={productPath(p.id)}>{p.name}</Link>
         </h3>
-        <span style={{ ...mono, fontSize: 14, display: 'flex', gap: 8, whiteSpace: 'nowrap' }}>
+        {p.kind && <span style={{ fontSize: 13, color: 'var(--muted)' }}>{p.kind}</span>}
+        <span style={{ fontSize: 15, color: '#E2A75E', display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
           {p.old && <span style={{ color: 'var(--graphite)', textDecoration: 'line-through' }}>{fmt(p.old)}</span>}
           <span>{p.hasRange ? 'dès ' : ''}{fmt(p.price)}</span>
         </span>
@@ -62,11 +52,11 @@ export function ProductCard({ p }: { p: Product }) {
       {p.inStock && p.purchasable && (
         <button
           className="btn btn-dark"
-          // Avec plusieurs déclinaisons (taille, couleur…), le choix se fait sur la fiche.
+          // Plusieurs contenances (échantillon, flacon) : le choix se fait sur la fiche.
           onClick={() => { if (needsChoice) navigate(productPath(p.id)); else add(p.id, 1, p.variants[0]?.id); }}
-          style={{ height: 44, padding: '0 14px', marginTop: 'auto' }}
+          style={{ height: 46, padding: '0 10px', marginTop: 'auto' }}
         >
-          {needsChoice ? '+ Choisir la taille' : '+ Ajouter'}
+          {needsChoice ? (L.mobile ? 'Choisir' : 'Choisir la contenance') : (L.mobile ? 'Ajouter' : 'Ajouter au panier')}
         </button>
       )}
     </article>
@@ -76,11 +66,11 @@ export function ProductCard({ p }: { p: Product }) {
 /** Grille du shop : cases séparées par des filets de 1 px, comme la maquette. */
 export function ProductGrid({ items }: { items: Product[] }) {
   const { status, reload } = useCatalog();
-  const grid: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(160px, 24vw, 340px), 1fr))', gap: 1, background: 'var(--line)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' };
+  const grid: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(150px, 26vw, 400px), 1fr))', gap: 20 };
   if (status === 'loading' && !items.length) {
     return (
       <div style={grid} aria-busy="true" aria-label="Chargement des articles">
-        {[0, 1, 2, 3].map((i) => <div key={i} style={{ background: 'var(--ivory)', padding: 16 }}><div className="ph" style={{ aspectRatio: '3/4', opacity: 0.6 }} /></div>)}
+        {[0, 1, 2].map((i) => <div key={i} style={{ background: '#17140F', border: '1px solid var(--line)', padding: 14 }}><div className="ph" style={{ aspectRatio: '1', opacity: 0.6 }} /></div>)}
       </div>
     );
   }
@@ -113,8 +103,8 @@ export function CollectionsGrid() {
               <img className="zoom-hover" src={img} alt={c.label} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <>
-                <div className="ph zoom-hover" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: '40%', aspectRatio: '1', borderRadius: '50%', border: '1px solid #3A3A3A' }} />
+                <div className="ph zoom-hover" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #3A3024' }}>
+                  <Dial size="18%" />
                 </div>
                 <span className="ph-caption" style={{ left: 14, bottom: 12, fontSize: 9.5, letterSpacing: '.12em' }}>photo · {c.img}</span>
               </>
@@ -142,11 +132,11 @@ export function Eyebrow({ children, style }: { children: React.ReactNode; style?
 
 export function Crumbs({ items }: { items: [string, string?][] }) {
   return (
-    <nav aria-label="Fil d’Ariane" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontFamily: 'var(--mono)', fontSize: 12, textTransform: 'uppercase', color: 'var(--graphite)' }}>
+    <nav aria-label="Fil d’Ariane" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 12, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--graphite)' }}>
       {items.map(([label, to], i) => (
         <span key={label} style={{ display: 'flex', gap: 10 }}>
           {i > 0 && <span>/</span>}
-          {to ? <Link to={to} style={{ color: 'var(--graphite)' }}>{label}</Link> : <span style={{ color: 'var(--ink)' }}>{label}</span>}
+          {to ? <Link to={to} style={{ color: 'var(--graphite)' }}>{label}</Link> : <span style={{ color: '#E2A75E' }}>{label}</span>}
         </span>
       ))}
     </nav>

@@ -11,20 +11,20 @@ export function About() {
   return (
     <>
       <section data-reveal style={{ padding: `${L.pageTop} ${L.px} 0`, display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1100 }}>
-        <span className="mono">À propos</span>
-        <h1 className="display" style={{ letterSpacing: '-.015em', lineHeight: 1, fontSize: L.h1 }}>Porter l’essentiel.</h1>
+        <span className="eyebrow">La maison</span>
+        <h1 className="display" style={{ lineHeight: 1, fontSize: L.h1 }}>Un parfum, <span style={{ color: '#E2A75E' }}>une signature.</span></h1>
         <p style={{ margin: 0, maxWidth: 600, fontSize: 18, lineHeight: 1.65, color: 'var(--body)' }}>
-          Vasyciao, c’est du noir, du blanc, et des coupes qui tiennent. Des vestes, des hauts, des pantalons et des robes pour femme et homme, pensés pour durer plus d’une saison et livrés partout au Maroc.
+          Valduren est une maison de parfums née au Maroc. À nos créations, comme Eternal Desire et BOOM, s’ajoute une sélection de maisons de niche, Francesca Bianchi et Ramón Béjar. Chaque parfum existe en échantillon de 2 ml, pour l’essayer avant de l’adopter.
         </p>
       </section>
       <section data-reveal style={{ padding: `${L.sec} ${L.px} 0`, display: 'grid', gridTemplateColumns: L.split, gap: L.pGap, alignItems: 'end' }}>
-        <div className="ph" style={{ aspectRatio: '4/5' }}><img src="/looks/veste-militaire.webp" alt="Veste militaire Vasyciao" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 18%', filter: 'grayscale(1)' }} /></div>
+        <div className="ph" style={{ aspectRatio: '4/5', border: '1px solid #E2A75E' }}><img src="/looks/eternal-desire.jpg" alt="Flacon Valduren Eternal Desire" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }} /></div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {PILLARS.map((pl) => (
             <div key={pl.n} style={{ padding: '26px 0', borderTop: '1px solid var(--line)', display: 'grid', gridTemplateColumns: '56px minmax(0,1fr)', gap: 12 }}>
-              <span className="mono" style={{ letterSpacing: '.14em' }}>{pl.n}</span>
+              <span style={{ fontSize: 13, letterSpacing: '.2em', color: '#E2A75E' }}>{pl.n}</span>
               <span style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontStretch: '115%', fontWeight: 600, textTransform: 'uppercase', fontSize: 15 }}>{pl.t}</span>
+                <span style={{ fontFamily: 'var(--display-font)', fontSize: 22 }}>{pl.t}</span>
                 <span style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--muted)' }}>{pl.d}</span>
               </span>
             </div>
@@ -38,7 +38,7 @@ export function About() {
 
 const CONTACT_INFO = [
   { k: 'Service client', v: 'Du lundi au samedi, 9 h – 19 h' },
-  { k: 'E-mail', v: 'contact@vasyciao.ma' },
+  { k: 'E-mail', v: 'contact@valduren.ma' },
   { k: 'Réponse', v: 'Sous 24 h ouvrées' },
 ];
 
@@ -49,10 +49,10 @@ export function Contact() {
   return (
     <section data-reveal style={{ padding: `${L.pageTop} ${L.px} 0`, display: 'grid', gridTemplateColumns: L.split2, gap: L.pGap }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <span className="mono">Contact</span>
-        <h1 className="display" style={{ lineHeight: 1, fontSize: L.h2 }}>Une question ? On te répond.</h1>
+        <span className="eyebrow">Contact</span>
+        <h1 className="display" style={{ lineHeight: 1, fontSize: L.h2 }}>Une question ? Nous vous répondons.</h1>
         <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.65, color: 'var(--muted)', maxWidth: 380 }}>
-          Conseil taille, suivi de commande, échange : on te répond sous 24 h.
+          Conseil parfum, suivi de commande, échange : nous vous répondons sous 24 h.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {CONTACT_INFO.map((ci) => (

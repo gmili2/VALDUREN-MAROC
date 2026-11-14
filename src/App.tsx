@@ -29,13 +29,12 @@ const TITLES: Record<string, string> = {
 /** Pages de la boutique : mêmes titres que l'API (backend/src/catalog/seo.controller.ts). */
 const SHOP_TITLES: Record<string, string> = {
   '/produits': 'Toute la boutique',
-  '/produits/homme': 'Vêtements homme',
-  '/produits/femme': 'Vêtements femme',
-  '/produits/vestes': 'Vestes',
-  '/produits/hauts': 'Hauts',
-  '/produits/pantalons': 'Pantalons',
-  '/produits/robes': 'Robes',
-  '/produits/accessoires': 'Accessoires',
+  '/produits/homme': 'Parfums homme',
+  '/produits/femme': 'Parfums femme',
+  '/produits/unisexe': 'Parfums unisexe',
+  '/produits/eaux-de-parfum': 'Eaux de parfum',
+  '/produits/extraits': 'Extraits de parfum',
+  '/produits/coffrets': 'Coffrets et échantillons',
   '/produits/nouveautes': 'Nouveautés',
   '/produits/promos': 'Promos',
 };
@@ -54,13 +53,13 @@ export default function App() {
     closeAll();
     // Fiche produit : balises posées par la page elle-même (nom, prix, description).
     if (pathname.startsWith('/produit/')) return;
-    if (pathname.startsWith(PATHS.admin)) { setMeta({ title: 'Administration — VASYCIAO', path: pathname, noindex: true }); return; }
+    if (pathname.startsWith(PATHS.admin)) { setMeta({ title: 'Administration — VALDUREN', path: pathname, noindex: true }); return; }
     if (pathname === '/') { setMeta({ title: HOME_TITLE, path: '/' }); return; }
     const shop = SHOP_TITLES[pathname];
     const t = shop ?? TITLES[pathname] ?? 'Boutique';
     setMeta({
-      title: `${t} — VASYCIAO`,
-      description: shop ? `${shop} au Maroc, boutique VASYCIAO. ${SHOP_PITCH}` : undefined,
+      title: `${t} — VALDUREN`,
+      description: shop ? `${shop} au Maroc, boutique VALDUREN. ${SHOP_PITCH}` : undefined,
       path: pathname,
       noindex: PRIVATE.includes(pathname) || (!shop && !TITLES[pathname]),
     });

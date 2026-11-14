@@ -22,9 +22,9 @@ export function AccessGate({ onUnlock }: { onUnlock: () => void }) {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: '#0B0B0B' }}>
       <form onSubmit={submit} style={{ width: 'min(420px,100%)', background: 'var(--ivory)', border: '1px solid #2A2A2A', padding: 'clamp(28px,6vw,48px)', display: 'flex', flexDirection: 'column', gap: 18, textAlign: 'center', alignItems: 'center' }}>
-        <span style={{ width: 96, height: 96, background: '#0B0B0B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Logo size={58} /></span>
+        <Logo h={96} />
         <span className="mono" style={{ fontSize: 10.5, letterSpacing: '.16em' }}>Accès privé</span>
-        <h1 className="display" style={{ margin: 0, fontSize: 26, lineHeight: 1.1 }}>Bienvenue chez VASYCIAO</h1>
+        <h1 className="display" style={{ margin: 0, fontSize: 26, lineHeight: 1.1 }}>Bienvenue chez VALDUREN</h1>
         <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.6, color: 'var(--muted)' }}>La boutique est réservée à nos invités. Saisissez votre code d’accès pour découvrir la collection.</p>
         <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Code d’accès" aria-label="Code d’accès" autoFocus required autoComplete="off"
           style={{ width: '100%', height: 52, padding: '0 16px', border: '1px solid var(--line-strong)', background: 'var(--paper)', fontSize: 15, textAlign: 'center', letterSpacing: '.1em' }} />

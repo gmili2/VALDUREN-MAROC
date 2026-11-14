@@ -19,11 +19,11 @@ export type ApiShopProduct = {
 };
 
 type Tag = Exclude<CategoryId, 'all'>;
-const TAGS: Tag[] = ['homme', 'femme', 'vestes', 'hauts', 'pantalons', 'robes', 'accessoires', 'new', 'promo'];
+const TAGS: Tag[] = ['homme', 'femme', 'unisexe', 'edp', 'extraits', 'coffrets', 'new', 'promo'];
 /** Catégorie de l'admin (slug) → rayon de la boutique. */
-const CATEGORY_TAG: Record<string, Tag> = { vestes: 'vestes', hauts: 'hauts', pantalons: 'pantalons', robes: 'robes', accessoires: 'accessoires' };
+const CATEGORY_TAG: Record<string, Tag> = { 'eaux-de-parfum': 'edp', extraits: 'extraits', coffrets: 'coffrets' };
 const NEW_DAYS = 60;
-const HOUSE = 'VASYCIAO';
+const HOUSE = 'VALDUREN';
 const euros = (c: number) => c / 100;
 const swatch = ({ label, colorHex }: ApiSwatch): Swatch => ({ label, colorHex });
 
@@ -31,8 +31,10 @@ const swatch = ({ label, colorHex }: ApiSwatch): Swatch => ({ label, colorHex })
 function tagsOf(p: ApiShopProduct): Tag[] {
   const t = new Set<Tag>((p.extraSpecs?.tags ?? []).filter((x): x is Tag => (TAGS as string[]).includes(x)));
   if (CATEGORY_TAG[p.category.slug]) t.add(CATEGORY_TAG[p.category.slug]);
+  // Unisexe : rayon à part, et aussi dans Homme et Femme.
   if (p.gender !== 'WOMEN') t.add('homme');
   if (p.gender !== 'MEN') t.add('femme');
+  if (p.gender === 'UNISEX') t.add('unisexe');
   if (p.onSale || p.variants.some((v) => v.onSale)) t.add('promo');
   if (p.publishedAt && Date.now() - new Date(p.publishedAt).getTime() < NEW_DAYS * 86_400_000) t.add('new');
   return [...t];
@@ -51,18 +53,18 @@ export function toShopProduct(p: ApiShopProduct): Product {
     id: v.id, sku: v.sku, values: v.values.map(swatch), price: euros(v.finalPriceCents), old: v.onSale ? euros(v.priceCents) : null,
     inStock: v.inStock, lowStock: v.lowStock, imageUrl: media(v.imageUrl) ?? null,
   }));
-  // Prix affiché sur les cartes : la déclinaison la moins chère (avec son prix barré éventuel).
-  const cheapest = variants.length ? variants.reduce((a, b) => (b.price < a.price ? b : a)) : null;
+  // Prix affiché sur les cartes : le flacon (la contenance la plus chère), pas l'échantillon 2 ml.
+  const cheapest = variants.length ? variants.reduce((a, b) => (b.price > a.price ? b : a)) : null;
   // Tailles proposées (option « Taille »), affichées dans la fiche détaillée.
-  const sizes = p.options.find((o) => /taille|pointure/i.test(o.name))?.values.map((v) => v.label).join(' · ') ?? '';
+  const sizes = p.options.find((o) => /contenance|taille|format/i.test(o.name))?.values.map((v) => v.label).join(' · ') ?? '';
   const rayon = CATEGORY_TAG[p.category.slug];
   return {
-    id: p.slug, sku: p.sku, name: p.name, brand: p.brand.name === HOUSE ? undefined : p.brand.name, image: media(p.images[0]?.url), photos: p.images.map((i) => media(i.url)!), videos: (p.videos ?? []).map((v) => media(v)!), qtyTiers: (p.qtyDiscounts ?? []).map((t) => ({ minQty: t.minQty, amount: t.amountCents / 100 })), col: p.collection?.name ?? '', kind: p.shortDescription ?? x.kind ?? (rayon ? CATS[rayon][0] : ''),
+    id: p.slug, sku: p.sku, name: p.name, brand: p.brand.name === HOUSE ? 'Valduren' : p.brand.name, image: media(p.images[0]?.url), photos: p.images.map((i) => media(i.url)!), videos: (p.videos ?? []).map((v) => media(v)!), qtyTiers: (p.qtyDiscounts ?? []).map((t) => ({ minQty: t.minQty, amount: t.amountCents / 100 })), col: p.collection?.name ?? '', kind: p.shortDescription ?? x.kind ?? (rayon ? CATS[rayon][0] : ''),
     cats: tagsOf(p),
     price: cheapest ? cheapest.price : euros(p.finalPriceCents),
     old: cheapest ? cheapest.old : p.onSale ? euros(p.priceCents) : null,
-    hasRange: p.hasPriceRange, rating: p.ratingAvg, reviews: p.ratingCount, inStock: p.inStock, purchasable: p.purchasable,
-    stock: !p.inStock ? 'Épuisé — bientôt de retour' : p.lowStock && p.stock ? `Plus que ${p.stock} pièce${p.stock > 1 ? 's' : ''} disponible${p.stock > 1 ? 's' : ''}` : 'En stock — expédié sous 24 h',
+    hasRange: false, rating: p.ratingAvg, reviews: p.ratingCount, inStock: p.inStock, purchasable: p.purchasable,
+    stock: !p.inStock ? 'Épuisé — bientôt de retour' : p.lowStock && p.stock ? `Plus que ${p.stock} flacon${p.stock > 1 ? "s" : ""} disponible${p.stock > 1 ? 's' : ''}` : 'En stock — expédié sous 24 h',
     // Champs repris du modèle d'origine : matière, tailles, coupe, entretien, personnalisation.
     movement: x.movement ?? p.caseMaterial, dims: x.dims ?? sizes, strap: x.strap ?? p.strapMaterial, glass: x.glass ?? p.glass,
     water: x.water ?? '',

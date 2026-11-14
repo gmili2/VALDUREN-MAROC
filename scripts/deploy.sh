@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Déploie VASYCIAO sur l'hébergement cPanel Namecheap (même compte que GMBIJOUX) :
-#   site  → ~/vasyciao.mygympro.club          https://vasyciao.mygympro.club
-#   API   → ~/vasyciao-api (app Node.js cPanel, URL /api)
+# Déploie VALDUREN sur l'hébergement cPanel Namecheap (même compte que GMBIJOUX) :
+#   site  → ~/valduren-maroc.mygympro.club          https://valduren-maroc.mygympro.club
+#   API   → ~/valduren-api (app Node.js cPanel, URL /api)
 # Premier lancement : crée la base MySQL, l'app Node.js, le .env (mots de passe aléatoires) et importe le
 # catalogue de départ. Lancements suivants : met seulement le code à jour (le .env et les photos sont gardés).
 #   ./scripts/deploy.sh
 set -euo pipefail
 
-DOMAIN=vasyciao.mygympro.club
-SITE_DIR=vasyciao.mygympro.club
-APP_DIR=vasyciao-api
-DB=gmbimeor_vasyciao
+DOMAIN=valduren-maroc.mygympro.club
+SITE_DIR=valduren-maroc.mygympro.club
+APP_DIR=valduren-api
+DB=gmbimeor_valduren
 NODE_MAJOR=22
 SSH_TARGET=gmbimeor@server71-1.web-hosting.com
 SSH="ssh -i $HOME/.ssh/gmbijoux_deploy -p 21098 -o LogLevel=ERROR"
@@ -38,10 +38,10 @@ DATABASE_URL="mysql://$DB:$DBPASS@127.0.0.1:3306/$DB?sslmode=disable"
 JWT_SECRET="$(openssl rand -hex 32)"
 FRONTEND_URL="https://$DOMAIN"
 SITE_INDEX_FILE="/home/$USER/$DOMAIN/index.html"
-ADMIN_EMAIL="admin@vasyciao.ma"
+ADMIN_EMAIL="admin@valduren.ma"
 ADMIN_PASSWORD="$ADMIN_PASS"
 ENV
-  echo "  .env créé — compte admin : admin@vasyciao.ma / $ADMIN_PASS  (notez-le, il n'est affiché qu'une fois)"
+  echo "  .env créé — compte admin : admin@valduren.ma / $ADMIN_PASS  (notez-le, il n'est affiché qu'une fois)"
 fi
 if [ ! -d ~/nodevenv/$APP_DIR ]; then
   cloudlinux-selector create --json --interpreter nodejs --version $NODE_MAJOR --app-root $APP_DIR \

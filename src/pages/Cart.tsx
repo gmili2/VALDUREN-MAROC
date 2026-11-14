@@ -204,7 +204,7 @@ export function Checkout() {
 
       {done ? (
         <div data-reveal style={{ padding: '56px 0', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 20 }}>
-          <img src="/logo.png" alt="" style={{ width: 88, height: 88, objectFit: 'contain', mixBlendMode: 'multiply' }} />
+          <img src="/logo.png" alt="" style={{ width: 110, height: 90, objectFit: 'contain' }} />
           <h2 className="display" style={{ fontSize: L.h3 }}>Merci, votre commande est enregistrée.</h2>
           <p style={{ margin: 0, maxWidth: 520, fontSize: 15.5, lineHeight: 1.65, color: 'var(--muted)' }}>
             Commande <strong style={{ color: 'var(--ink)' }}>{done.number}</strong> · {fmt(done.totalCents / 100)}.{' '}

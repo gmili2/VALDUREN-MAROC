@@ -1,114 +1,145 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ProductGrid, whoOf } from '../components/Catalog';
+import { Dial, ProductGrid } from '../components/Catalog';
 import { useCatalog } from '../catalog';
 import { useLayout } from '../layout';
 import { productPath, shopPath } from '../routes';
 
-const wrap: React.CSSProperties = { maxWidth: 1440, margin: '0 auto', paddingLeft: 24, paddingRight: 24 };
-const mono: React.CSSProperties = { fontFamily: 'var(--mono)' };
+const wrap: React.CSSProperties = { maxWidth: 1320, margin: '0 auto', paddingLeft: 24, paddingRight: 24 };
 const line = '1px solid var(--line)';
+const GOLD = '#E2A75E';
 
-/** Photos de l'ouverture Femme / Homme (public/looks), à remplacer par vos propres visuels. */
-const HERO = [
-  { id: 'femme' as const, n: '01', img: '/looks/tailleur-oversize.webp', alt: 'Femme en tailleur noir oversize', pos: 'center 15%', light: false },
-  { id: 'homme' as const, n: '02', img: '/looks/veste-chemise.jpg', alt: 'Homme en veste chemise noire et pantalon large', pos: 'center 25%', light: true },
-];
+/** Parfum mis en avant en ouverture (photo public/looks) et parfum signature de la maison. */
+const HERO_SLUG = 'eternal-desire';
+const SIGNATURE_SLUG = 'boom';
 
 function Hero() {
   const L = useLayout();
+  const { find } = useCatalog();
+  const p = find(HERO_SLUG);
+  const m = L.mobile;
   return (
-    <section aria-label="Femme et homme" style={{ display: 'flex', flexWrap: 'wrap', borderBottom: line }}>
-      {HERO.map((h, i) => (
-        <Link
-          key={h.id} to={shopPath(h.id)}
-          style={{ flex: '1 1 520px', minWidth: 0, position: 'relative', height: L.mobile ? 520 : 760, overflow: 'hidden', display: 'block', background: h.light ? '#E9E9E6' : '#1A1A1A', borderRight: i === 0 ? line : undefined }}
-        >
-          <img src={h.img} alt={h.alt} fetchPriority={i === 0 ? 'high' : undefined} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: h.pos, display: 'block' }} />
-          <span style={{ ...mono, position: 'absolute', top: 20, left: 24, fontSize: 12, color: '#FFFFFF', background: '#0B0B0B', padding: '6px 10px' }}>{h.n} / {h.id.toUpperCase()}</span>
-          <span style={{ position: 'absolute', left: 24, right: 24, bottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16 }}>
-            <span style={{ fontFamily: 'var(--display-font)', fontSize: 'clamp(72px, 9vw, 150px)', lineHeight: 0.85, color: h.light ? '#0B0B0B' : '#FFFFFF' }}>{h.id.toUpperCase()}</span>
-            <span style={{ ...mono, flex: 'none', fontSize: 13, background: h.light ? '#0B0B0B' : '#F5F5F3', color: h.light ? '#F5F5F3' : '#0B0B0B', padding: '12px 16px' }}>VOIR →</span>
-          </span>
-        </Link>
-      ))}
+    <section aria-label="Eternal Desire" style={{ position: 'relative', overflow: 'hidden', borderBottom: line, background: '#1A0F06' }}>
+      <img src="/looks/eternal-desire-desert.jpg" alt="Flacon Valduren Eternal Desire posé sur un rocher, face aux dunes au coucher du soleil" fetchPriority="high"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: m ? '84% center' : 'center', display: 'block' }} />
+      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: m
+        ? 'linear-gradient(0deg, rgba(14,13,12,0.94) 0%, rgba(14,13,12,0.7) 42%, rgba(14,13,12,0) 72%)'
+        : 'linear-gradient(90deg, rgba(14,13,12,0.88) 0%, rgba(14,13,12,0.6) 34%, rgba(14,13,12,0) 62%)' }} />
+      <div style={{ ...wrap, position: 'relative', minHeight: m ? 640 : 720, padding: m ? '40px 24px 48px' : '80px 24px 96px', display: 'flex', alignItems: m ? 'flex-end' : 'center' }}>
+        <div style={{ maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <p className="eyebrow">Nouveau · Eau de parfum 100 ml</p>
+          <h1 className="display" style={{ fontSize: 'clamp(52px, 6.6vw, 100px)', lineHeight: 0.98, color: '#F6EBDA' }}>
+            Eternal<br /><span style={{ color: GOLD }}>Desire</span>
+          </h1>
+          <p style={{ margin: 0, maxWidth: 430, fontSize: 18, fontWeight: 300, lineHeight: 1.7, color: '#E4D6C1' }}>
+            Un sillage chaud et lumineux, comme le désert au coucher du soleil.
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+            <Link className="btn btn-primary" to={p ? productPath(p.id) : shopPath('all')}>Découvrir</Link>
+            <a className="btn btn-ghost-light" href="#collection">La collection</a>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
 
-type Filter = 'Tout' | 'Femme' | 'Homme';
-
 export default function Home() {
-  const { products } = useCatalog();
+  const L = useLayout();
+  const { products, find } = useCatalog();
   const { hash } = useLocation();
-  const [filter, setFilter] = useState<Filter>('Tout');
+  const [filter, setFilter] = useState('Tout');
 
-  // Lien « Lookbook » du menu (/#lookbook) : défile jusqu'à la section.
+  // Liens d'ancre (#collection, #echantillons) : défile jusqu'à la section.
   useEffect(() => {
     if (!hash) return;
     const t = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 60);
     return () => clearTimeout(t);
   }, [hash, products.length]);
 
-  // Lookbook : trois silhouettes, les premiers articles qui ont une photo.
-  const looks = useMemo(() => products.filter((p) => p.image).slice(0, 3), [products]);
-  const shop = useMemo(
-    () => (filter === 'Tout' ? products : products.filter((p) => p.cats.includes(filter === 'Femme' ? 'femme' : 'homme'))).slice(0, 8),
-    [products, filter],
+  // Filtres par maison : Valduren d'abord, puis les maisons présentes au catalogue.
+  const brands = useMemo(() => {
+    const set = [...new Set(products.map((p) => p.brand))];
+    return ['Tout', ...set.sort((a, b) => (a === 'Valduren' ? -1 : b === 'Valduren' ? 1 : a.localeCompare(b)))];
+  }, [products]);
+  // Ordre de la maquette : la maison Valduren d'abord, les coffrets à la fin.
+  const rank = (p: (typeof products)[number]) => (p.cats.includes('coffrets') ? 2 : p.brand === 'Valduren' ? 0 : 1);
+  const shown = useMemo(
+    () => (filter === 'Tout' ? products : products.filter((p) => p.brand === filter)).slice().sort((a, b) => rank(a) - rank(b)).slice(0, 9),
+    [products, filter], // eslint-disable-line react-hooks/exhaustive-deps
   );
+  const sig = find(SIGNATURE_SLUG);
+  const notes: [string, string][] = sig ? [['Tête', sig.movement], ['Cœur', sig.strap], ['Fond', sig.glass]] : [];
+  const hasNotes = notes.some(([, v]) => v);
 
   return (
     <>
       <Hero />
 
-      <section aria-label="Manifeste" style={{ borderBottom: line }}>
-        <div data-reveal style={{ ...wrap, paddingTop: 72, paddingBottom: 72, display: 'flex', flexWrap: 'wrap', gap: '32px 64px', alignItems: 'flex-end' }}>
-          <h1 className="display" style={{ flex: '3 1 560px', minWidth: 0, fontSize: 'clamp(48px, 6.4vw, 104px)', lineHeight: 0.95 }}>
-            Porter l’essentiel.<br /><span style={{ color: '#8C8C8C' }}>Sans compromis.</span>
-          </h1>
-          <div style={{ flex: '1 1 280px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <p style={{ margin: 0, fontSize: 16, lineHeight: 1.65, color: 'var(--muted)' }}>Vasyciao, c’est du noir, du blanc, et des coupes qui tiennent. Pour femme et homme, pensé pour durer plus d’une saison.</p>
-            <Link to={shopPath('all')} style={{ ...mono, alignSelf: 'flex-start', fontSize: 13, border: '1px solid #F5F5F3', padding: '14px 20px' }}>ACHETER LA COLLECTION →</Link>
+      <section id="collection" aria-label="La collection" style={{ borderBottom: line, scrollMarginTop: 90 }}>
+        <div style={{ ...wrap, paddingTop: L.mobile ? 56 : 80, paddingBottom: L.mobile ? 56 : 80 }}>
+          <div data-reveal style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, marginBottom: 40 }}>
+            <p className="eyebrow">La collection</p>
+            <h2 className="display" style={{ fontSize: 'clamp(36px, 4vw, 54px)' }}>Notre sélection</h2>
+            {brands.length > 2 && (
+              <div role="group" aria-label="Filtrer par maison" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 8 }}>
+                {brands.map((b) => (
+                  <button key={b} className={`chip${filter === b ? ' active' : ''}`} aria-pressed={filter === b} onClick={() => setFilter(b)}>{b}</button>
+                ))}
+              </div>
+            )}
+          </div>
+          <ProductGrid items={shown} />
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
+            <Link className="btn btn-outline" to={shopPath('all')}>Toute la collection</Link>
           </div>
         </div>
       </section>
 
-      {looks.length > 0 && (
-        <section id="lookbook" aria-label="Lookbook" style={{ borderBottom: line, scrollMarginTop: 80 }}>
-          <div style={{ ...wrap, paddingTop: 56, paddingBottom: 64 }}>
-            <div style={{ ...mono, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, marginBottom: 28, fontSize: 13 }}>
-              <span>LOOKBOOK — SAISON 2026</span>
-              <span style={{ color: '#8C8C8C' }}>{String(looks.length).padStart(2, '0')} SILHOUETTE{looks.length > 1 ? 'S' : ''}</span>
-            </div>
-            <div data-reveal style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 16 }}>
-              {looks.map((p, i) => (
-                <Link key={p.id} to={productPath(p.id)} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <span style={{ position: 'relative', display: 'block', aspectRatio: '4 / 5', overflow: 'hidden', background: '#1A1A1A' }}>
-                    <img className="zoom-hover" src={p.image} alt={p.name} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter: i < 2 ? 'grayscale(1)' : 'none', display: 'block' }} />
-                  </span>
-                  <span style={{ ...mono, display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13 }}>
-                    <span>{String(i + 1).padStart(2, '0')} — {p.name}</span>
-                    <span style={{ color: '#8C8C8C', textTransform: 'uppercase' }}>{whoOf(p) === 'Mixte' ? 'Essentiel' : whoOf(p)}</span>
-                  </span>
-                </Link>
-              ))}
+      {sig && (
+        <section aria-label={sig.name} style={{ background: '#17140F', borderBottom: line }}>
+          <div data-reveal style={{ ...wrap, paddingTop: L.mobile ? 56 : 80, paddingBottom: L.mobile ? 56 : 80, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: L.mobile ? 36 : 56 }}>
+            <Link to={productPath(sig.id)} aria-label={sig.name} style={{ flex: '1 1 380px', minWidth: 0, aspectRatio: '1 / 1', maxWidth: 520, border: '1px solid #3A3024', padding: 18 }}>
+              <span style={{ position: 'relative', width: '100%', height: '100%', border: `1.5px solid ${GOLD}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0E0D0C', overflow: 'hidden' }}>
+                {sig.image
+                  ? <img src={sig.image} alt={`Flacon ${sig.name}`} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <Dial size="20%" />}
+              </span>
+            </Link>
+            <div style={{ flex: '1 1 420px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 22 }}>
+              <p className="eyebrow">La signature</p>
+              <h2 className="display" style={{ fontSize: 'clamp(64px, 8vw, 120px)', lineHeight: 0.9, color: GOLD }}>{sig.name}</h2>
+              <p style={{ margin: 0, maxWidth: 460, fontSize: 17, fontWeight: 300, lineHeight: 1.7, color: '#E4D6C1' }}>{sig.desc}</p>
+              {hasNotes && (
+                <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: L.mobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', border: line }}>
+                  {notes.map(([k, v], i) => (
+                    <div key={k} style={{ padding: '14px 16px', borderLeft: !L.mobile && i ? line : undefined, borderTop: L.mobile && i ? line : undefined }}>
+                      <dt style={{ fontSize: 11, letterSpacing: '.22em', color: 'var(--graphite)', textTransform: 'uppercase' }}>{k}</dt>
+                      <dd style={{ margin: '6px 0 0', fontSize: 15 }}>{v || '—'}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              <Link className="btn btn-primary" to={productPath(sig.id)} style={{ alignSelf: 'flex-start' }}>Commander {sig.name}</Link>
             </div>
           </div>
         </section>
       )}
 
-      <section id="shop" aria-label="Shop" style={{ borderBottom: line }}>
-        <div style={{ ...wrap, paddingTop: 56, paddingBottom: 28, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20 }}>
-          <h2 className="display" style={{ fontSize: 'clamp(56px, 7vw, 112px)', lineHeight: 0.9 }}>Shop</h2>
-          <div role="group" aria-label="Filtrer" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {(['Tout', 'Femme', 'Homme'] as Filter[]).map((f) => (
-              <button key={f} className={`chip${filter === f ? ' active' : ''}`} aria-pressed={filter === f} onClick={() => setFilter(f)}>[ {f} ]</button>
-            ))}
+      <section id="echantillons" aria-label="Coffret d’échantillons" style={{ scrollMarginTop: 90 }}>
+        <div style={{ ...wrap, paddingTop: L.mobile ? 56 : 80, paddingBottom: L.mobile ? 56 : 80 }}>
+          <div data-reveal style={{ maxWidth: 1100, margin: '0 auto', border: '1px solid #3A3024', padding: 14 }}>
+            <div style={{ border: `1px solid ${GOLD}`, padding: L.mobile ? '32px 22px' : '40px 32px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 28 }}>
+              <div style={{ flex: '1 1 420px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <p className="eyebrow">Essayer avant d’adopter</p>
+                <h2 className="display" style={{ fontSize: 'clamp(30px, 3.4vw, 46px)' }}>Le coffret d’échantillons 2 ml</h2>
+                <p style={{ margin: 0, fontSize: 15, fontWeight: 300, lineHeight: 1.75, color: '#E4D6C1' }}>
+                  Chaque parfum en format 2 ml vaporisateur, à glisser dans la poche. Idéal pour trouver votre signature, ou pour offrir.
+                </p>
+              </div>
+              <Link className="btn btn-primary" to={shopPath('coffrets')}>Composer mon coffret</Link>
+            </div>
           </div>
-        </div>
-        <ProductGrid items={shop} />
-        <div style={{ ...wrap, paddingTop: 28, paddingBottom: 56, display: 'flex', justifyContent: 'center' }}>
-          <Link className="btn btn-outline" to={shopPath(filter === 'Femme' ? 'femme' : filter === 'Homme' ? 'homme' : 'all')}>Voir tout le shop →</Link>
         </div>
       </section>
     </>

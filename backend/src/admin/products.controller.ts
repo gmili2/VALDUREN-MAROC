@@ -37,15 +37,15 @@ export class CreateProductDto {
   @IsOptional() @IsUUID() collectionId?: string | null;
   @IsEnum(MovementType) movementType: MovementType;
   @IsOptional() @IsString() @MaxLength(60) caliber?: string;
-  @IsString() @MinLength(1) @MaxLength(60) caseMaterial: string;
-  @IsString() @MinLength(1) @MaxLength(60) strapMaterial: string;
-  @IsString() @MinLength(1) @MaxLength(40) color: string;
+  @IsString() @MaxLength(150) caseMaterial: string;
+  @IsString() @MaxLength(150) strapMaterial: string;
+  @IsString() @MaxLength(40) color: string;
   @IsOptional() @IsString() @MaxLength(40) dialColor?: string;
   @IsNumber({ maxDecimalPlaces: 1 }) @Min(0) @Max(99) diameterMm: number; // hérité du modèle montre, 0 pour les vêtements
   @IsOptional() @IsNumber({ maxDecimalPlaces: 1 }) @Min(1) @Max(99) thicknessMm?: number | null;
   @IsOptional() @IsInt() @Min(4) @Max(40) lugWidthMm?: number | null;
   @IsInt() @Min(0) @Max(20_000) waterResistanceM: number;
-  @IsString() @MinLength(1) @MaxLength(60) glass: string;
+  @IsString() @MaxLength(150) glass: string;
   @IsOptional() @IsInt() @Min(0) @Max(2000) powerReserveHours?: number | null;
   @IsOptional() @IsInt() @Min(0) @Max(120) warrantyMonths?: number;
   @IsOptional() @IsObject() extraSpecs?: Record<string, unknown>;

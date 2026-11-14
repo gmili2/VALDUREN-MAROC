@@ -503,7 +503,7 @@ type ImportResult = {
 };
 const IMPORT_TEMPLATE = [
   'nom;prix;prix_barre;stock;sku;categorie;marque;mouvement;couleurs;diametre;etancheite;bracelet;genre;statut;description;images',
-  'T-shirt exemple;190;249;5;EX-001;Hauts;VASYCIAO;Saison 2026;Noir|Blanc;0;0;Boxy;Homme;Brouillon;T-shirt en jersey épais.;https://exemple.com/photo1.jpg | https://exemple.com/photo2.jpg',
+  'T-shirt exemple;190;249;5;EX-001;Hauts;VALDUREN;Saison 2026;Noir|Blanc;0;0;Boxy;Homme;Brouillon;T-shirt en jersey épais.;https://exemple.com/photo1.jpg | https://exemple.com/photo2.jpg',
 ].join('\r\n');
 function downloadTemplate() {
   // BOM : Excel lit alors correctement les accents.
@@ -526,7 +526,7 @@ function confirmMessage(o: AOrder) {
   const lines = o.lines.map((l) => `• ${l.qty} × ${l.name}${l.variant ? ` (${l.variant})` : ''}`).join('\n');
   return [
     `Bonjour ${first} 👋`,
-    `Merci pour votre commande ${o.number} sur VASYCIAO 🖤`,
+    `Merci pour votre commande ${o.number} sur VALDUREN 🖤`,
     '',
     lines,
     `Total : ${fmt(o.total)} — paiement à la livraison 💵`,
@@ -578,7 +578,7 @@ export default function Admin() {
   const [user, setUser] = useState<ApiUser | null | undefined>(undefined);
 
   useEffect(() => {
-    document.title = 'Administration — VASYCIAO';
+    document.title = 'Administration — VALDUREN';
     refreshSession().then((u) => setUser(u?.role === 'ADMIN' ? u : null));
     setLogoutHandler(() => setUser(null));
     return () => setLogoutHandler(null);
@@ -613,9 +613,9 @@ function AdminLogin({ onLogin }: { onLogin: (u: ApiUser) => void }) {
       <style>{'.adm-input:focus{border-color:#111!important}'}</style>
       <form onSubmit={submit} style={{ ...card, width: 'min(420px,100%)', padding: 'clamp(24px,5vw,40px)', display: 'flex', flexDirection: 'column', gap: 18 }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#111', marginBottom: 6 }}>
-          <Logo size={40} light mono="#111" />
+          <Logo h={48} />
           <span style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <span style={{ fontStretch: '125%', fontWeight: 600, fontSize: 14, letterSpacing: '.04em' }}>VASYCIAO</span>
+            <span style={{ fontStretch: '125%', fontWeight: 600, fontSize: 14, letterSpacing: '.04em' }}>VALDUREN</span>
             <span style={{ ...monoLabel, fontSize: 9.5 }}>Administration</span>
           </span>
         </Link>
@@ -826,7 +826,7 @@ function AdminPanel({ user, onLogout }: { user: ApiUser; onLogout: () => void })
   };
   const openProduct = (p?: AProduct) => {
     setPtiers([]);
-    if (!p) return openForm('product', null, { name: '', sku: '', reference: '', description: '', price: '', sale: '', stock: '0', status: 'Brouillon', brand: refs.brands[0]?.name ?? '', collection: COLLS[0] ?? '', category: CATS[0] ?? '', movement: 'Quartz', caseMat: 'Acier 316L', strap: '', color: 'Noir', diameter: '0', water: '0', glass: 'Lavage à 30 °C', reserve: '', warranty: '24', unlimited: 'Non' });
+    if (!p) return openForm('product', null, { name: '', sku: '', reference: '', description: '', price: '', sale: '', stock: '0', status: 'Brouillon', brand: refs.brands[0]?.name ?? '', collection: COLLS[0] ?? '', category: CATS[0] ?? '', movement: 'Quartz', caseMat: '', strap: '', color: '', diameter: '0', water: '0', glass: '', reserve: '', warranty: '24', unlimited: 'Non' });
     const { images: imgs, videos: vids, sold, id, options, variants, purchasable, qtyTiers, ...rest } = p;
     void sold; void purchasable;
     openForm('product', id, rest, imgs, options, variants, vids);
@@ -859,7 +859,7 @@ function AdminPanel({ user, onLogout }: { user: ApiUser; onLogout: () => void })
   const save = async () => {
     const f = form;
     const req = {
-      product: ['name', 'sku', 'price', 'stock', 'strap', 'caseMat', 'color', 'glass'],
+      product: ['name', 'sku', 'price', 'stock'],
       coupon: ['code', 'value'], promo: ['name', 'value', 'start', 'end'],
     }[drawer as 'product'];
     const errs: Record<string, string> = {};
@@ -978,11 +978,11 @@ function AdminPanel({ user, onLogout }: { user: ApiUser; onLogout: () => void })
 
   let groups: { title: string; fields: FieldDef[] }[] = [];
   if (drawer === 'product') groups = [
-    { title: 'Informations', fields: [{ k: 'name', label: 'Nom *', ph: 'Maillot Court Orange', full: true }, { k: 'sku', label: 'SKU *', ph: 'IN-MCO-01' }, { k: 'reference', label: 'Référence', ph: 'Réf. fabricant' }, { k: 'description', label: 'Description', area: true, full: true, ph: 'Matière, coupe, usage…' }] },
+    { title: 'Informations', fields: [{ k: 'name', label: 'Nom *', ph: 'Eternal Desire', full: true }, { k: 'sku', label: 'SKU *', ph: 'VD-ED-01' }, { k: 'reference', label: 'Référence', ph: 'Réf. fabricant' }, { k: 'description', label: 'Description', area: true, full: true, ph: 'Matière, coupe, usage…' }] },
     { title: 'Prix & stock', fields: [{ k: 'price', label: 'Prix (DH) *', type: 'number', ph: '13900' }, { k: 'sale', label: 'Prix promo (DH)', type: 'number', ph: 'Optionnel' }, { k: 'stock', label: form.unlimited === 'Oui' ? 'Stock (illimité)' : vars.length ? 'Stock (déclinaisons)' : 'Stock *', type: 'number', disabled: vars.length > 0 || form.unlimited === 'Oui' }, { k: 'status', label: 'Statut', options: PSTATUS.map((x) => x[1]) }, { k: 'unlimited', label: 'Stock illimité (toujours commandable, rien n’est décompté)', options: ['Non', 'Oui'], full: true }] },
     { title: 'Classement', fields: [{ k: 'category', label: 'Catégorie', options: CATS }, { k: 'collection', label: 'Collection', options: COLLS }, { k: 'brand', label: 'Marque', options: refs.brands.map((b) => b.name), full: true }] },
     // Champs du modèle d'origine réutilisés : matière (boîtier), coupe (bracelet), entretien (verre).
-    { title: 'Caractéristiques', fields: [{ k: 'caseMat', label: 'Matière *', ph: 'Polyester mesh respirant' }, { k: 'strap', label: 'Coupe *', ph: 'Ample, longueur genou' }, { k: 'color', label: 'Couleur *' }, { k: 'glass', label: 'Entretien *', ph: 'Lavage à 30 °C' }] },
+    { title: 'Pyramide olfactive', fields: [{ k: 'caseMat', label: 'Notes de tête', ph: 'Bergamote, poivre rose' }, { k: 'strap', label: 'Notes de cœur', ph: 'Rose, safran' }, { k: 'glass', label: 'Notes de fond', ph: 'Ambre, oud, musc' }, { k: 'color', label: 'Couleur du flacon', ph: 'Ambré' }] },
   ];
   else if (drawer === 'coupon') groups = [
     { title: 'Code', fields: [{ k: 'code', label: 'Code *', ph: 'BIENVENUE10', full: true }, { k: 'type', label: 'Type de remise', options: ['Pourcentage', 'Montant fixe'] }, { k: 'value', label: form.type === 'Pourcentage' ? 'Valeur (%) *' : 'Valeur (DH) *', type: 'number' }] },
@@ -1030,10 +1030,10 @@ function AdminPanel({ user, onLogout }: { user: ApiUser; onLogout: () => void })
       {/* ---------- barre latérale ---------- */}
       <aside style={{ background: '#111', color: '#fff', display: 'flex', flexDirection: m ? 'row' : 'column', gap: m ? 16 : 36, padding: m ? '10px 16px' : '28px 18px', position: 'sticky', top: 0, height: m ? 'auto' : '100vh', zIndex: 30, overflowX: 'auto' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 'none', color: '#fff' }}>
-          <Logo size={40} />
+          <Logo h={44} />
           {!m && (
             <span style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <span style={{ fontStretch: '125%', fontWeight: 600, fontSize: 14, letterSpacing: '.04em' }}>VASYCIAO</span>
+              <span style={{ fontStretch: '125%', fontWeight: 600, fontSize: 14, letterSpacing: '.04em' }}>VALDUREN</span>
               <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '.16em', textTransform: 'uppercase', color: '#8C8C86' }}>Administration</span>
             </span>
           )}
@@ -1051,7 +1051,7 @@ function AdminPanel({ user, onLogout }: { user: ApiUser; onLogout: () => void })
           <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 20, borderTop: '1px solid #2A2A2A' }}>
             <Link to="/" style={{ color: '#E0E0DC', fontSize: 13, display: 'flex', justifyContent: 'space-between' }}>Voir la boutique<span>→</span></Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ width: 34, height: 34, borderRadius: '50%', background: '#2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>GM</span>
+              <span style={{ width: 34, height: 34, borderRadius: '50%', background: '#2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>VD</span>
               <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}><span style={{ fontSize: 13 }}>{user.firstName} {user.lastName}</span><span style={{ fontSize: 11.5, color: '#8C8C86', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</span></span>
             </div>
             <button onClick={onLogout} style={{ background: 'none', border: 0, padding: 0, color: '#8C8C86', fontSize: 12.5, cursor: 'pointer', textAlign: 'left' }}>Se déconnecter</button>

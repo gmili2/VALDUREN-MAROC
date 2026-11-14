@@ -4,7 +4,15 @@
  * - src/cli/bootstrap.ts (premier démarrage en production, sans rien écraser).
  */
 import { Gender, MovementType, PrismaClient, ProductStatus } from '@prisma/client';
-import products from './catalog-products.json';
+import productsJson from './catalog-products.json';
+
+/** Parfum du catalogue de départ. Notes (movement = tête, strap = cœur, glass = fond) facultatives : modifiables dans l'admin. */
+type StarterProduct = {
+  slug: string; name: string; brand: string; gender?: string; collection: string; image?: string | null; kind: string; cats: string[];
+  price: number; old: number | null; rating: number; reviews: number; desc: string;
+  movement?: string; dims?: string; strap?: string; glass?: string; water?: string;
+};
+const products = productsJson as StarterProduct[];
 import adminData from './catalog-admin.json';
 
 /** Montant en dirhams → centimes. Les prix du catalogue (catalog-products.json) sont en DH. */
@@ -24,11 +32,9 @@ export const VARIANTS: Record<string, {
 
 /* Rayons de la boutique (photos ajoutables depuis Admin → Catégories). */
 export const CATEGORIES: [slug: string, name: string, description: string, imageUrl: string | null][] = [
-  ['vestes', 'Vestes', 'Tailleurs, vestes chemises et vestes militaires.', null],
-  ['hauts', 'Hauts', 'T-shirts, chemises, blouses, pulls et hoodies.', null],
-  ['pantalons', 'Pantalons', 'Pantalons larges à pinces et pantalons tailleur.', null],
-  ['robes', 'Robes', 'Robes longues et fluides.', null],
-  ['accessoires', 'Accessoires', 'Sacs et accessoires Vasyciao.', null],
+  ['eaux-de-parfum', 'Eaux de parfum', 'Un sillage qui dure toute la journée.', null],
+  ['extraits', 'Extraits', 'La concentration la plus riche, pour un parfum intense et tenace.', null],
+  ['coffrets', 'Coffrets', 'Coffrets et échantillons 2 ml.', null],
 ];
 
 
@@ -37,9 +43,9 @@ export type CatalogProduct = { id: string; name: string; sku: string; unit: numb
 /** Marque maison, catégories et livraison : créées seulement si elles n'existent pas. */
 export async function installReferenceData(prisma: PrismaClient) {
   const brands: Record<string, string> = {};
-  const house = await prisma.brand.findUnique({ where: { slug: 'vasyciao' } })
-    ?? await prisma.brand.create({ data: { name: 'VASYCIAO', slug: 'vasyciao', description: 'Vêtements femme et homme au Maroc.' } });
-  brands.VASYCIAO = house.id;
+  const house = await prisma.brand.findUnique({ where: { slug: 'valduren' } })
+    ?? await prisma.brand.create({ data: { name: 'VALDUREN', slug: 'valduren', description: 'Maison de parfums au Maroc.' } });
+  brands.VALDUREN = house.id;
 
   const cats: Record<string, string> = {};
   for (const [i, [slug, name, description, imageUrl]] of CATEGORIES.entries()) {

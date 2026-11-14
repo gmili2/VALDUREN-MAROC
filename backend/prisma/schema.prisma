@@ -309,15 +309,15 @@ model Product {
   // Caractéristiques techniques (colonnes dédiées = filtrables et indexables)
   movementType      MovementType
   caliber           String?      @db.VarChar(60)
-  caseMaterial      String       @db.VarChar(60)
-  strapMaterial     String       @db.VarChar(60)
+  caseMaterial      String       @db.VarChar(150)
+  strapMaterial     String       @db.VarChar(150)
   color             String       @db.VarChar(40) // couleur principale (filtre)
   dialColor         String?      @db.VarChar(40)
   diameterMm        Decimal      @db.Decimal(4, 1)
   thicknessMm       Decimal?     @db.Decimal(4, 1)
   lugWidthMm        Int?
   waterResistanceM  Int
-  glass             String       @db.VarChar(60)
+  glass             String       @db.VarChar(150)
   powerReserveHours Int?
   warrantyMonths    Int          @default(24)
   extraSpecs        Json? // caractéristiques libres non filtrables

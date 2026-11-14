@@ -3,11 +3,10 @@ import type { CategoryId } from './data';
 const SLUGS: Record<Exclude<CategoryId, 'all'>, string> = {
   homme: 'homme',
   femme: 'femme',
-  vestes: 'vestes',
-  hauts: 'hauts',
-  pantalons: 'pantalons',
-  robes: 'robes',
-  accessoires: 'accessoires',
+  unisexe: 'unisexe',
+  edp: 'eaux-de-parfum',
+  extraits: 'extraits',
+  coffrets: 'coffrets',
   new: 'nouveautes',
   promo: 'promos',
 };

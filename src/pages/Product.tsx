@@ -2,20 +2,20 @@ import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useCatalog } from '../catalog';
-import { Crumbs, Dial, ProductGrid, iconOf } from '../components/Catalog';
+import { Crumbs, Dial, ProductGrid } from '../components/Catalog';
 import { QtyStepper } from '../components/Shell';
 import { BagIcon } from '../components/icons';
-import { fmt, ratingF, stars, type Product as P, type Variant } from '../data';
+import { WHATSAPP, fmt, ratingF, stars, type Product as P, type Variant } from '../data';
 import { useLayout } from '../layout';
 import { track } from '../pixel';
 import { PATHS, productPath, shopPath } from '../routes';
 import { SHOP_PITCH, setMeta } from '../seo';
 import { lineKey, useStore } from '../store';
 
-const VIEWS = ['Face', 'Dos', 'Détail', 'Porté'];
+const VIEWS = ['Flacon', 'Boîte', 'Détail', 'Échantillon'];
 const REASSURE = [
   { t: 'Livraison', d: '2 à 4 jours partout au Maroc' },
-  { t: 'Échange de taille', d: 'Sous 7 jours' },
+  { t: 'Échantillon offert', d: '2 ml avec chaque commande' },
   { t: 'Paiement', d: 'À la livraison' },
 ];
 type Review = { id: string; author: string; rating: number; title: string | null; comment: string; createdAt: string };
@@ -24,7 +24,9 @@ const pct = (price: number, old: number) => '−' + Math.round((1 - price / old)
 
 /** Valeurs choisies par défaut : la première déclinaison disponible. */
 function defaultSelection(p: P): Record<string, string> {
-  const v = p.variants.find((x) => x.inStock) ?? p.variants[0];
+  // Le flacon (contenance la plus chère) d'abord ; l'échantillon 2 ml reste à un clic.
+  const inStock = p.variants.filter((x) => x.inStock);
+  const v = (inStock.length ? inStock : p.variants).reduce<Variant | undefined>((a, b) => (!a || b.price > a.price ? b : a), undefined);
   return v ? Object.fromEntries((p.options ?? []).map((o, i) => [o.name, v.values[i]?.label ?? o.values[0].label])) : {};
 }
 const matches = (p: P, v: Variant, sel: Record<string, string>) => (p.options ?? []).every((o, i) => v.values[i]?.label === sel[o.name]);
@@ -55,8 +57,8 @@ export default function Product() {
     if (!p) return;
     const text = `${p.kind ? p.kind + '. ' : ''}${p.desc}`.replace(/\s+/g, ' ');
     setMeta({
-      title: `${p.name} — ${fmt(p.price)} — VASYCIAO`,
-      description: `${p.name} à ${fmt(p.price)}${p.hasRange ? ' et plus' : ''}. ${text} ${SHOP_PITCH}`.slice(0, 300),
+      title: `${p.name} — ${p.brand} — ${fmt(p.price)} — VALDUREN`,
+      description: `${p.name} de ${p.brand} à ${fmt(p.price)}${p.hasRange ? ' et plus' : ''}. ${text} ${SHOP_PITCH}`.slice(0, 300),
       path: productPath(p.id),
     });
   }, [p]);
@@ -105,7 +107,7 @@ export default function Product() {
   const price = variant?.price ?? p.price;
   const old = variant ? variant.old : p.old;
   const canBuy = p.purchasable && (p.variants.length ? !!variant?.inStock : p.inStock);
-  const stockText = !p.purchasable ? 'Pièce présentée en vitrine' : !p.variants.length ? p.stock : !variant ? 'Combinaison indisponible' : !variant.inStock ? 'Épuisé dans cette version' : variant.lowStock ? 'Dernières pièces disponibles' : 'En stock — expédié sous 24 h';
+  const stockText = !p.purchasable ? 'Parfum présenté en vitrine' : !p.variants.length ? p.stock : !variant ? 'Combinaison indisponible' : !variant.inStock ? 'Épuisé dans cette version' : variant.lowStock ? 'Dernières pièces disponibles' : 'En stock — expédié sous 24 h';
   const photos = p.photos.length ? p.photos : p.image ? [p.image] : [];
   // Galerie : les photos puis les vidéos ; `img` désigne un élément de cette suite.
   const gallery = [...photos.map((src) => ({ src, video: false })), ...p.videos.map((src) => ({ src, video: true }))];
@@ -151,21 +153,22 @@ export default function Product() {
     return { x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 };
   };
   const similar = catalog.products.filter((x) => x.id !== p.id && x.cats.some((c) => p.cats.includes(c) && c !== 'new')).slice(0, 4);
+  const notes = [['Tête', p.movement], ['Cœur', p.strap], ['Fond', p.glass]].filter(([, v]) => v);
   const specs = [
-    ['Matière', p.movement], ['Coupe', p.strap], ['Tailles', p.dims], ['Entretien', p.glass],
-    ['Détail', p.water], ['Livraison', '2 à 4 jours — Maroc'], ['Référence', ref],
+    ['Maison', p.brand], ['Concentration', p.kind], ['Notes de tête', p.movement], ['Notes de cœur', p.strap], ['Notes de fond', p.glass],
+    ['Contenances', p.dims], ['Famille olfactive', p.water], ['Livraison', '2 à 4 jours — Maroc'], ['Référence', ref],
   ].filter(([, v]) => v);
   const shownReviews = reviews.id === p.id ? reviews.list : [];
-  const label: React.CSSProperties = { fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--graphite)' };
+  const label: React.CSSProperties = { fontSize: 11, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--graphite)' };
 
   return (
     <>
       <section style={{ padding: `24px ${L.px} 0` }}>
-        <Crumbs items={[['Accueil', '/'], ['Boutique', shopPath('all')], [p.name]]} />
+        <Crumbs items={[['Accueil', '/'], ['La collection', shopPath('all')], [p.name]]} />
         <div style={{ display: 'grid', gridTemplateColumns: L.split, gap: L.pGap, marginTop: 24, alignItems: 'start' }}>
           <div data-reveal style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {mainVideo ? (
-              <div className="ph" style={{ aspectRatio: '4/5', backgroundImage: 'none', background: '#000', overflow: 'hidden' }}>
+              <div className="ph" style={{ aspectRatio: '1/1', backgroundImage: 'none', background: '#000', overflow: 'hidden' }}>
                 <video key={mainVideo} src={mainVideo} controls autoPlay muted loop playsInline preload="metadata"
                   style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />
               </div>
@@ -176,18 +179,18 @@ export default function Product() {
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setZoom((z) => !z); } }}
               onMouseMove={(e) => zoom && setZxy(pos(e))}
               onMouseLeave={() => zoom && setZoom(false)}
-              className="ph" style={{ aspectRatio: '4/5', backgroundImage: 'none', cursor: zoom ? 'zoom-out' : 'zoom-in', background: mainPhoto ? 'var(--card)' : 'transparent' }}
+              className="ph" style={{ aspectRatio: '1/1', backgroundImage: 'none', cursor: zoom ? 'zoom-out' : 'zoom-in', background: mainPhoto ? '#1A0F06' : '#17140F', border: '1px solid #E2A75E' }}
             >
               <div className="ph" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: zoom ? 'scale(2.2)' : 'scale(1)', transformOrigin: `${zxy.x}% ${zxy.y}%`, transition: 'transform .6s var(--ease)' }}>
                 {mainPhoto
-                  ? <img src={mainPhoto} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 18%', display: 'block' }} />
-                  : <Dial size="36%" path={iconOf(p)} />
+                  ? <img src={mainPhoto} alt={`Flacon ${p.name} de ${p.brand}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%', display: 'block' }} />
+                  : <Dial size="18%" />
                 }
               </div>
-              <span className="ph-caption">photo · {p.name}{variant ? ' ' + variant.values.map((v) => v.label).join(' · ') : ''} — {photos.length ? `${shown + 1} / ${gallery.length}` : VIEWS[Math.max(0, img)]}</span>
-              <span style={{ position: 'absolute', right: 14, top: 14, padding: '6px 10px', background: '#0B0B0B', color: '#F5F5F3', fontFamily: 'var(--mono)', fontSize: 12, textTransform: 'uppercase' }}>
+              {photos.length > 1 && <span className="ph-caption">{shown + 1} / {gallery.length}</span>}
+              {mainPhoto && <span style={{ position: 'absolute', right: 14, top: 14, padding: '6px 10px', background: 'rgba(14,13,12,.85)', color: '#E2A75E', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase' }}>
                 {zoom ? 'Zoom × 2,2' : 'Cliquer pour zoomer'}
-              </span>
+              </span>}
             </div>
             )}
             {gallery.length > 1 ? (
@@ -200,8 +203,8 @@ export default function Product() {
                       ? <>
                           {/* #t=0.1 : première image de la vidéo comme vignette. */}
                           <video src={`${src}#t=0.1`} muted playsInline preload="metadata" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                          <span aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: 30, height: 30, background: '#F5F5F3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '10px solid #0B0B0B', marginLeft: 3 }} />
+                          <span aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: 30, height: 30, background: '#E2A75E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '10px solid #0E0D0C', marginLeft: 3 }} />
                           </span>
                         </>
                       : <img src={src} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
@@ -216,7 +219,7 @@ export default function Product() {
                   style={{ aspectRatio: '1', padding: 0, cursor: 'pointer', backgroundImage: 'none', background: p.image && i === 0 ? 'var(--card)' : undefined, border: `1px solid ${i === shown ? 'var(--ink)' : 'transparent'}`, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start', overflow: 'hidden', position: 'relative' }}
                 >
                   {p.image && i === 0 && <img src={p.image} alt={v} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />}
-                  <span style={{ position: 'relative', zIndex: 1, padding: 8, fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase', color: p.image ? 'rgba(11,11,11,.6)' : 'var(--graphite)', textAlign: 'left' }}>{v}</span>
+                  <span style={{ position: 'relative', zIndex: 1, padding: 8, fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--graphite)', textAlign: 'left' }}>{v}</span>
                 </button>
               ))}
             </div>
@@ -224,26 +227,38 @@ export default function Product() {
           </div>
 
           <div data-reveal style={{ position: L.sticky, top: 110, display: 'flex', flexDirection: 'column', gap: 22, paddingTop: 6 }}>
-            <span className="mono">N° {ref} · {p.col}</span>
-            <h1 className="display" style={{ margin: '-6px 0 0', fontSize: 'clamp(52px, 5vw, 76px)' }}>{p.name}</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
-              <span style={{ letterSpacing: '.12em' }}>{stars(p.rating)}</span><span>{ratingF(p.rating)}</span>
-              <span style={{ color: 'var(--graphite)' }}>· {p.reviews} avis</span>
-            </div>
+            <span style={{ fontSize: 13, letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--muted)' }}>{p.brand}{p.kind ? ` · ${p.kind}` : ''}</span>
+            <h1 className="display" style={{ margin: '-6px 0 0', fontSize: 'clamp(44px, 5vw, 72px)', color: '#E2A75E' }}>{p.name}</h1>
+            {p.reviews > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
+                <span style={{ letterSpacing: '.12em', color: '#E2A75E' }}>{stars(p.rating)}</span><span>{ratingF(p.rating)}</span>
+                <span style={{ color: 'var(--graphite)' }}>· {p.reviews} avis</span>
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 14, padding: '18px 0', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
-              <span style={{ fontFamily: 'var(--mono)', fontSize: 22 }}>{fmt(price)}</span>
+              <span style={{ fontSize: 26, fontWeight: 500 }}>{fmt(price)}</span>
               {old && (
                 <>
                   <span style={{ fontSize: 16, color: 'var(--graphite)', textDecoration: 'line-through' }}>{fmt(old)}</span>
-                  <span style={{ padding: '5px 10px', background: 'var(--ink)', color: 'var(--ivory)', fontFamily: 'var(--mono)', fontSize: 12 }}>{pct(price, old)}</span>
+                  <span style={{ padding: '5px 10px', background: '#E2A75E', color: '#0E0D0C', fontSize: 12, fontWeight: 600 }}>{pct(price, old)}</span>
                 </>
               )}
               <span style={{ flexBasis: '100%', fontSize: 12.5, color: 'var(--graphite)' }}>TTC · paiement à la livraison ou par virement</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
-              <span style={{ width: 7, height: 7, background: canBuy ? 'var(--ink)' : 'var(--faint)', boxShadow: '0 0 0 4px var(--line)' }} />{stockText}
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: canBuy ? '#E2A75E' : 'var(--faint)', boxShadow: '0 0 0 4px var(--line)' }} />{stockText}
             </div>
-            <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.7, color: 'var(--body)', textWrap: 'pretty' }}>{p.desc}</p>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 300, lineHeight: 1.75, color: 'var(--body)', textWrap: 'pretty' }}>{p.desc}</p>
+            {notes.length > 0 && (
+              <dl style={{ margin: 0, border: '1px solid var(--line-strong)' }}>
+                {notes.map(([k, v], i) => (
+                  <div key={k} style={{ display: 'grid', gridTemplateColumns: '90px minmax(0,1fr)', gap: 14, padding: '14px 16px', borderTop: i ? '1px solid var(--line)' : undefined }}>
+                    <dt style={{ ...label, color: '#E2A75E', paddingTop: 3 }}>{k}</dt>
+                    <dd style={{ margin: 0, fontSize: 15 }}>{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
             {(p.options ?? []).map((o) => {
               const isColor = o.values.some((v) => v.colorHex);
               return (
@@ -282,7 +297,7 @@ export default function Product() {
                         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', cursor: 'pointer', textAlign: 'left', background: on ? 'var(--paper)' : 'transparent', border: `1.5px solid ${on ? 'var(--ink)' : 'var(--line-strong)'}`, transition: 'border-color .2s' }}>
                         <span aria-hidden style={{ width: 18, height: 18, flex: 'none', border: `1.5px solid ${on ? 'var(--ink)' : 'var(--line-strong)'}`, boxShadow: on ? 'inset 0 0 0 4px var(--paper)' : 'none', background: on ? 'var(--ink)' : 'transparent' }} />
                         <span style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-                          <span style={{ fontSize: 15, fontWeight: 600 }}>{n === 1 ? '1 article' : `${n} articles`}</span>
+                          <span style={{ fontSize: 15, fontWeight: 600 }}>{n === 1 ? '1 flacon' : `${n} flacons`}</span>
                           {total < sum && <span style={{ fontSize: 12.5, color: 'var(--graphite)' }}>Économisez {fmt(sum - total)}</span>}
                         </span>
                         <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
@@ -328,6 +343,11 @@ export default function Product() {
               {!offers.length && <QtyStepper qty={qty} h={56} onDec={() => setQty((q) => Math.max(1, q - 1))} onInc={() => setQty((q) => q + 1)} />}
               <button className="btn btn-primary btn-tall" disabled={!canBuy} style={{ flex: 1, minWidth: 200, opacity: canBuy ? 1 : 0.4 }} onClick={buy}>{canBuy ? '+ Ajouter au panier' : p.purchasable ? 'Épuisé' : 'Non disponible à la vente'}</button>
             </div>
+            {canBuy && WHATSAPP && (
+              <a className="btn btn-outline btn-tall" target="_blank" rel="noopener" href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Bonjour, je souhaite commander ${p.name} (${p.brand})${variant && (p.options ?? []).length ? ' — ' + variant.values.map((v) => v.label).join(' · ') : ''}.`)}`}>
+                Commander sur WhatsApp
+              </a>
+            )}
             {canBuy && (
               <button className="btn btn-outline btn-tall" onClick={buyNow}>
                 Acheter maintenant · {fmt(packTotal)}{packTotal < packSum ? <span style={{ marginLeft: 8, textDecoration: 'line-through', opacity: 0.55 }}>{fmt(packSum)}</span> : null}
@@ -346,8 +366,9 @@ export default function Product() {
 
       <section data-reveal style={{ padding: `${L.sec} ${L.px} 0`, display: 'grid', gridTemplateColumns: L.split2, gap: L.pGap }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <span className="eyebrow">Détails & matière</span>
+          <span className="eyebrow">Le parfum</span>
           <h2 className="display" style={{ fontSize: L.h3 }}>Caractéristiques</h2>
+          <p style={{ margin: 0, fontSize: 14.5, fontWeight: 300, lineHeight: 1.7, color: 'var(--muted)', maxWidth: 360 }}>Comment le porter : vaporisez à 15 cm sur le cou et les poignets, sans frotter, pour laisser les notes se révéler.</p>
         </div>
         <dl style={{ margin: 0 }}>
           {specs.map(([k, v]) => (
@@ -362,9 +383,13 @@ export default function Product() {
       <section data-reveal style={{ padding: `${L.sec} ${L.px} 0`, display: 'grid', gridTemplateColumns: L.split2, gap: L.pGap }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'flex-start' }}>
           <span className="eyebrow">Avis clients</span>
-          <span style={{ fontFamily: 'var(--display-font)', fontSize: 64, lineHeight: 1 }}>{ratingF(p.rating)}</span>
-          <span style={{ letterSpacing: '.14em' }}>{stars(p.rating)}</span>
-          <span style={{ fontSize: 13.5, color: 'var(--graphite)' }}>Basé sur {p.reviews} avis vérifiés</span>
+          {p.reviews > 0 ? (
+            <>
+              <span style={{ fontFamily: 'var(--display-font)', fontSize: 64, lineHeight: 1, color: '#E2A75E' }}>{ratingF(p.rating)}</span>
+              <span style={{ letterSpacing: '.14em', color: '#E2A75E' }}>{stars(p.rating)}</span>
+              <span style={{ fontSize: 13.5, color: 'var(--graphite)' }}>Basé sur {p.reviews} avis vérifiés</span>
+            </>
+          ) : <span style={{ fontSize: 15, color: 'var(--muted)' }}>Soyez le premier à donner votre avis sur ce parfum.</span>}
           <button className="btn btn-outline" style={{ marginTop: 8, height: 48, padding: '0 24px', fontSize: 11.5 }}>Écrire un avis</button>
         </div>
         <div>
@@ -385,8 +410,8 @@ export default function Product() {
       {similar.length > 0 && (
         <section style={{ padding: `${L.sec} ${L.px} 0`, display: 'flex', flexDirection: 'column', gap: 32 }}>
           <div data-reveal style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <span className="eyebrow">{String(similar.length).padStart(2, '0')} pièces</span>
-            <h2 className="display" style={{ fontSize: 48 }}>À porter avec</h2>
+            <span className="eyebrow">{similar.length} parfum{similar.length > 1 ? 's' : ''}</span>
+            <h2 className="display" style={{ fontSize: 44 }}>Vous aimerez aussi</h2>
           </div>
           <ProductGrid items={similar} />
         </section>
@@ -394,14 +419,14 @@ export default function Product() {
 
       {L.mobile && (
         // Barre d'achat mobile : prix et coloris, ajout au panier (icône) et achat direct vers le formulaire de commande.
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 45, background: '#0B0B0B', borderTop: '1px solid var(--line)', padding: '10px 16px calc(10px + env(safe-area-inset-bottom))', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 45, background: '#0E0D0C', borderTop: '1px solid var(--line)', padding: '10px 16px calc(10px + env(safe-area-inset-bottom))', display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flex: 'none', maxWidth: '34%' }}>
             <span style={{ fontSize: 16, fontWeight: 600, whiteSpace: 'nowrap' }}>{fmt(packTotal)}</span>
             {packTotal < packSum
               ? <span style={{ fontSize: 12, color: 'var(--graphite)', textDecoration: 'line-through' }}>{fmt(packSum)}</span>
               : old != null && old > price && units === 1 && <span style={{ fontSize: 12, color: 'var(--graphite)', textDecoration: 'line-through' }}>{fmt(old)}</span>}
             <span style={{ fontSize: 12, color: 'var(--graphite)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {units > 1 ? `${units} articles` : variant && (p.options ?? []).length > 0 ? variant.values.map((v) => v.label).join(' · ') : ''}
+              {units > 1 ? `${units} flacons` : variant && (p.options ?? []).length > 0 ? variant.values.map((v) => v.label).join(' · ') : ''}
             </span>
           </div>
           {canBuy ? (

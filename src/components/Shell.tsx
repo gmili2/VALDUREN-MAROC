@@ -1,130 +1,148 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCatalog } from '../catalog';
-import { fmt } from '../data';
+import { WHATSAPP, fmt } from '../data';
 import { useLayout } from '../layout';
 import { PATHS, productPath, shopPath } from '../routes';
 import { useStore } from '../store';
-import { CloseIcon, MenuIcon, SearchIcon } from './icons';
+import { BagIcon, BottleIcon, ChatIcon, CloseIcon, MenuIcon, SearchIcon, ShieldIcon, TruckIcon, UserIcon } from './icons';
 
-const NAV: { label: string; to: string; match: (path: string) => boolean }[] = [
-  { label: 'Femme', to: shopPath('femme'), match: (p) => p === shopPath('femme') },
+const NAV: { label: string; to: string; match: (path: string) => boolean; gold?: boolean }[] = [
   { label: 'Homme', to: shopPath('homme'), match: (p) => p === shopPath('homme') },
-  { label: 'Lookbook', to: '/#lookbook', match: () => false },
-  { label: 'Shop', to: shopPath('all'), match: (p) => p.startsWith('/produits') && p !== shopPath('femme') && p !== shopPath('homme') },
+  { label: 'Femme', to: shopPath('femme'), match: (p) => p === shopPath('femme') },
+  { label: 'Unisexe', to: shopPath('unisexe'), match: (p) => p === shopPath('unisexe') },
+  { label: 'Coffrets', to: shopPath('coffrets'), match: (p) => p === shopPath('coffrets'), gold: true },
 ];
 
-/** Symbole Vasyciao (infini et V), blanc sur fond sombre ; `light` ou `mono` : version noire pour fond clair. */
-export function Logo({ size, light = false, mono }: { size: number; light?: boolean; mono?: string }) {
-  const dark = light || !!mono;
-  return <img src={dark ? '/mark-black.png' : '/mark-white.png'} alt="Vasyciao" width={Math.round(size * 1.4)} height={Math.round(size * 0.68)} style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />;
+/** Logo Valduren (couronne, V et nom), doré, sur fond sombre. */
+export function Logo({ h }: { h: number }) {
+  return <img src="/logo.png" alt="Valduren" height={h} width={Math.round(h * 600 / 494)} style={{ display: 'block', flex: 'none' }} />;
 }
 
-/** Mot « VASYCIAO » en Anton. */
-export function Wordmark({ size }: { size: number }) {
-  return <span style={{ fontFamily: 'var(--display-font)', fontSize: size, lineHeight: 1, whiteSpace: 'nowrap' }}>VASYCIAO</span>;
-}
-
-/** Logo complet (symbole + nom), tel que dans la maquette. */
 function Brand({ h }: { h: number }) {
   return (
-    <Link to="/" aria-label="Vasyciao — accueil" style={{ display: 'block', flex: 'none' }}>
-      <img src="/logo-white.png" alt="Vasyciao" height={h} width={Math.round(h * 600 / 396)} style={{ display: 'block' }} />
+    <Link to="/" aria-label="Valduren — accueil" style={{ display: 'block', flex: 'none' }}>
+      <Logo h={h} />
     </Link>
   );
 }
 
 export function TopBar() {
+  const L = useLayout();
   return (
-    <div className="light" style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', fontFamily: 'var(--mono)', fontSize: 12, letterSpacing: '.08em', padding: '9px 16px', textAlign: 'center' }}>
-      LIVRAISON PARTOUT AU MAROC  ✕  ÉCHANGE SOUS 7 JOURS  ✕  NOUVELLE COLLECTION 2026  ✕  PAIEMENT À LA LIVRAISON
+    <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', fontSize: L.mobile ? 11 : 12, letterSpacing: L.mobile ? '.14em' : '.2em', padding: '10px 16px', textAlign: 'center', color: 'var(--muted)', borderBottom: '1px solid var(--line)' }}>
+      {L.mobile ? 'ÉCHANTILLON 2 ML OFFERT · LIVRAISON MAROC' : 'ÉCHANTILLON 2 ML OFFERT À CHAQUE COMMANDE · LIVRAISON PARTOUT AU MAROC'}
     </div>
   );
 }
 
-const cartBtn: React.CSSProperties = { border: 0, background: '#F5F5F3', color: '#0B0B0B', fontFamily: 'var(--mono)', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' };
+function CartButton() {
+  const { openDrawer, count } = useStore();
+  return (
+    <button className="icon-btn" onClick={openDrawer} aria-label={`Panier, ${count} article${count > 1 ? 's' : ''}`}>
+      <BagIcon size={20} />
+      <span className="badge-count">{count}</span>
+    </button>
+  );
+}
 
 export function Header() {
   const L = useLayout();
   const { pathname } = useLocation();
-  const { openSearch, openMenu, openDrawer, count, menu } = useStore();
-  const wrap: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 40, background: '#0B0B0B', borderBottom: '1px solid #2A2A2A' };
+  const { openSearch, openMenu, menu } = useStore();
+  const wrap: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 40, background: '#0E0D0C', borderBottom: '1px solid var(--line)' };
   if (L.mobile) {
     return (
       <header style={wrap}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, padding: '0 10px 0 20px', gap: 8 }}>
-          <Brand h={44} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button className="icon-btn" onClick={openSearch} aria-label="Rechercher"><SearchIcon size={20} /></button>
-            <button onClick={openDrawer} aria-label={`Panier, ${count} article${count > 1 ? 's' : ''}`} style={{ ...cartBtn, height: 40, padding: '0 12px', fontSize: 12 }}>({count})</button>
-            <button className="icon-btn" onClick={openMenu} aria-label="Menu" aria-expanded={menu}><MenuIcon size={22} /></button>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', height: 72, padding: '0 8px' }}>
+          <div style={{ display: 'flex' }}>
+            <button className="icon-btn" onClick={openMenu} aria-label="Menu" aria-expanded={menu} style={{ color: '#E2A75E' }}><MenuIcon size={22} /></button>
+            <button className="icon-btn" onClick={openSearch} aria-label="Rechercher"><SearchIcon size={19} /></button>
           </div>
+          <Brand h={56} />
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}><CartButton /></div>
         </div>
       </header>
     );
   }
   return (
     <header style={wrap}>
-      <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 24px', height: 76, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
-        <Brand h={56} />
-        <nav aria-label="Navigation principale" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div style={{ maxWidth: 1320, margin: '0 auto', padding: '10px 24px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 16 }}>
+        <nav aria-label="Catégories" style={{ display: 'flex', gap: 4 }}>
           {NAV.map((n) => (
-            <Link key={n.label} to={n.to} className={`nav-link${n.match(pathname) ? ' on' : ''}`}>[ {n.label} ]</Link>
+            <Link key={n.label} to={n.to} className={`nav-link${n.match(pathname) ? ' on' : ''}${n.gold ? ' gold' : ''}`}>{n.label}</Link>
           ))}
-          <span aria-hidden="true" style={{ width: 1, height: 24, background: '#2A2A2A', margin: '0 10px' }} />
-          <button className="nav-link" onClick={openSearch} style={{ background: 'none', border: 0, cursor: 'pointer', padding: '14px 10px' }}>Recherche</button>
-          <Link className="nav-link" to={PATHS.account} style={{ padding: '14px 10px' }}>Compte</Link>
-          <button onClick={openDrawer} style={{ ...cartBtn, height: 44, padding: '0 16px', fontSize: 13 }}>PANIER ({count})</button>
         </nav>
+        <Brand h={78} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+          <button className="icon-btn" onClick={openSearch} aria-label="Rechercher"><SearchIcon size={20} /></button>
+          <Link className="icon-btn" to={PATHS.account} aria-label="Mon compte"><UserIcon size={20} /></Link>
+          <CartButton />
+        </div>
       </div>
     </header>
   );
 }
 
 const FOOTER = [
-  { t: 'BOUTIQUE', links: [['Femme', shopPath('femme')], ['Homme', shopPath('homme')], ['Nouveautés', shopPath('new')], ['Shop', shopPath('all')]] },
-  { t: 'AIDE', links: [['Livraison & retours', PATHS.faq], ['Guide des tailles', PATHS.faq], ['Contact', PATHS.contact], ['Mon compte', PATHS.account]] },
-  { t: 'INFOS', links: [['À propos', PATHS.about], ['Conditions générales', PATHS.cgv], ['Confidentialité', PATHS.privacy], ['Administration', PATHS.admin]] },
+  { t: 'BOUTIQUE', links: [['Homme', shopPath('homme')], ['Femme', shopPath('femme')], ['Unisexe', shopPath('unisexe')], ['Coffrets', shopPath('coffrets')], ['Toute la collection', shopPath('all')]] },
+  { t: 'AIDE', links: [['Livraison & retours', PATHS.faq], ['Contact', PATHS.contact], ['Mon compte', PATHS.account]] },
+  { t: 'LA MAISON', links: [['À propos', PATHS.about], ['Conditions générales', PATHS.cgv], ['Confidentialité', PATHS.privacy], ['Administration', PATHS.admin]] },
+];
+
+const REASSURE = [
+  { icon: TruckIcon, t: 'Livraison soignée', d: '2 à 4 jours partout au Maroc' },
+  { icon: BottleIcon, t: 'Échantillon offert', d: '2 ml avec chaque commande' },
+  { icon: ShieldIcon, t: 'Paiement sécurisé', d: 'À la livraison ou par virement' },
+  { icon: ChatIcon, t: 'Conseil parfum', d: WHATSAPP ? 'Sur WhatsApp' : 'Nous vous aidons à choisir' },
 ];
 
 export function Footer() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const gold: React.CSSProperties = { fontSize: 12, fontWeight: 600, letterSpacing: '.22em', color: '#E2A75E' };
   return (
     <>
-      <section aria-label="Newsletter" className="light">
-        <div style={{ maxWidth: 1440, margin: '0 auto', padding: '64px 24px', display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'flex-end', justifyContent: 'space-between' }}>
-          <h2 className="display" style={{ flex: '1 1 420px', minWidth: 0, fontSize: 'clamp(44px, 5vw, 80px)', lineHeight: 0.95 }}>Les nouveautés<br />en premier</h2>
+      <section aria-label="Nos engagements" style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ maxWidth: 1320, margin: '0 auto', padding: '48px 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 32, textAlign: 'center' }}>
+          {REASSURE.map(({ icon: Icon, t, d }) => (
+            <div key={t} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <Icon color="#E2A75E" size={24} />
+              <span style={{ fontFamily: 'var(--display-font)', fontSize: 20 }}>{t}</span>
+              <span style={{ fontSize: 13, color: 'var(--graphite)' }}>{d}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section aria-label="Newsletter" style={{ borderBottom: '1px solid var(--line)' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', padding: '72px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center' }}>
+          <h2 className="display" style={{ fontSize: 'clamp(32px, 4vw, 46px)' }}>Entrez dans la maison Valduren</h2>
+          <p style={{ margin: 0, fontSize: 16, fontWeight: 300, color: 'var(--muted)' }}>Nouveautés, éditions limitées et offres réservées.</p>
           {subscribed ? (
-            <p style={{ flex: '1 1 420px', margin: 0, fontFamily: 'var(--mono)', fontSize: 14 }}>C’EST NOTÉ. TU RECEVRAS LES PROCHAINES PIÈCES AVANT TOUT LE MONDE.</p>
+            <p style={{ margin: '8px 0 0', fontSize: 15, color: '#E2A75E' }}>Merci, vous êtes inscrit·e. À très vite.</p>
           ) : (
-            <form onSubmit={(e) => { e.preventDefault(); if (/^\S+@\S+\.\S+$/.test(email)) setSubscribed(true); }} style={{ flex: '1 1 420px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <label htmlFor="vc-email" style={{ fontFamily: 'var(--mono)', fontSize: 12 }}>TON E-MAIL</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', borderBottom: '2px solid #0B0B0B' }}>
-                <input id="vc-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nom@exemple.com"
-                  style={{ flex: '1 1 200px', minWidth: 0, height: 56, border: 0, background: 'transparent', color: '#0B0B0B', fontSize: 20, padding: 0, outline: 'none' }} />
-                <button type="submit" style={{ height: 56, padding: '0 4px', background: 'transparent', border: 0, color: '#0B0B0B', fontFamily: 'var(--mono)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>S’INSCRIRE →</button>
-              </div>
+            <form onSubmit={(e) => { e.preventDefault(); if (/^\S+@\S+\.\S+$/.test(email)) setSubscribed(true); }} style={{ width: '100%', display: 'flex', flexWrap: 'wrap', marginTop: 12 }}>
+              <label htmlFor="vd-email" className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Votre e-mail</label>
+              <input id="vd-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="votre@email.com"
+                style={{ flex: '1 1 240px', minWidth: 0, height: 54, border: '1px solid #3A3024', borderRight: 0, background: '#17140F', color: 'var(--ink)', fontSize: 15, padding: '0 18px', outline: 'none' }} />
+              <button type="submit" className="btn btn-primary" style={{ flex: '0 0 auto', height: 54 }}>S’inscrire</button>
             </form>
           )}
         </div>
       </section>
-      <footer style={{ background: '#0B0B0B', containerType: 'inline-size' }}>
-        <div style={{ maxWidth: 1440, margin: '0 auto', padding: '48px 24px 0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 28, fontFamily: 'var(--mono)', fontSize: 13 }}>
+      <footer style={{ background: '#090807' }}>
+        <div style={{ maxWidth: 1320, margin: '0 auto', padding: '56px 24px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 32 }}>
+          <Link to="/" aria-label="Valduren — accueil"><Logo h={110} /></Link>
           {FOOTER.map((g) => (
-            <nav key={g.t} aria-label={g.t} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <span style={{ color: '#8C8C8C' }}>{g.t}</span>
+            <nav key={g.t} aria-label={g.t} style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 15 }}>
+              <span style={gold}>{g.t}</span>
               {g.links.map(([label, to]) => <Link key={label} to={to}>{label}</Link>)}
             </nav>
           ))}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <span style={{ color: '#8C8C8C' }}>©</span>
-            <span>2026 Vasyciao</span>
-            <span>Tous droits réservés</span>
-            <span style={{ color: '#8C8C8C' }}>Paiement à la livraison · Virement</span>
-          </div>
         </div>
-        <p aria-hidden="true" style={{ margin: '24px 0 0', padding: '0 12px', fontFamily: 'var(--display-font)', fontSize: '22.5cqw', lineHeight: 0.8, textAlign: 'center', color: '#F5F5F3', overflow: 'hidden', whiteSpace: 'nowrap' }}>VASYCIAO</p>
+        <div style={{ maxWidth: 1320, margin: '0 auto', padding: '0 24px' }}>
+          <p style={{ margin: 0, padding: '20px 0 28px', borderTop: '1px solid var(--line)', fontSize: 13, color: 'var(--graphite)' }}>© {new Date().getFullYear()} Valduren. Tous droits réservés. · Paiement à la livraison ou par virement</p>
+        </div>
       </footer>
     </>
   );
@@ -156,7 +174,7 @@ export function Overlays() {
   const query = q.trim().toLowerCase();
   const results = useMemo(
     () => (query
-      ? products.filter((p) => `${p.name} ${p.col} ${p.kind} ${p.sku} ${p.swatches.map((x) => x.label).join(' ')}`.toLowerCase().includes(query))
+      ? products.filter((p) => `${p.name} ${p.brand} ${p.col} ${p.kind} ${p.sku} ${p.swatches.map((x) => x.label).join(' ')}`.toLowerCase().includes(query))
       : products.slice(0, 4)),
     [query, products],
   );
@@ -176,7 +194,7 @@ export function Overlays() {
         style={{ position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 70, width: 'min(440px,100vw)', background: 'var(--ivory)', display: 'flex', flexDirection: 'column', transform: s.drawer ? 'translateX(0)' : 'translateX(105%)', transition: 'transform .6s var(--ease)', boxShadow: '-20px 0 60px rgba(0,0,0,.5)', borderLeft: '1px solid var(--line)', visibility: s.drawer ? 'visible' : 'hidden', transitionProperty: 'transform, visibility' }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--line)' }}>
-          <span className="display" style={{ fontSize: 32 }}>Panier ({s.count})</span>
+          <span className="display" style={{ fontSize: 30 }}>Votre panier ({s.count})</span>
           <button className="icon-btn" onClick={s.closeAll} aria-label="Fermer"><CloseIcon /></button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px' }}>
@@ -188,12 +206,12 @@ export function Overlays() {
                 <button className="ph" onClick={() => go(productPath(p.id))} aria-label={p.name} style={{ aspectRatio: '1', border: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                   {l.image
                     ? <img src={l.image} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span style={{ width: '52%', aspectRatio: '1', borderRadius: '50%', border: '1px solid #3A3A3A' }} />}
+                    : <BottleIcon color="#E2A75E" size={30} />}
                 </button>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
                     <span style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <span style={{ fontSize: 13.5, fontWeight: 600, textTransform: 'uppercase' }}>{p.name}</span>
+                      <span style={{ fontFamily: 'var(--display-font)', fontSize: 17 }}>{p.name}</span>
                       {l.label && <span style={{ fontSize: 12.5, color: 'var(--graphite)' }}>{l.label}</span>}
                     </span>
                     <span style={{ fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(l.unit * l.qty)}</span>
@@ -213,7 +231,7 @@ export function Overlays() {
             <span style={{ fontSize: 14 }}>{s.qtyDiscount > 0 ? 'Total' : 'Sous-total'} · livraison incluse</span>
             <span style={{ fontStretch: '110%', fontSize: 20, fontWeight: 500 }}>{fmt(s.subtotal - s.qtyDiscount)}</span>
           </div>
-          {s.nextTier && <span style={{ fontSize: 13, padding: '10px 12px', background: '#F5F5F3', color: '#0B0B0B', lineHeight: 1.4 }}>Ajoutez {s.nextTier.missing} {s.nextTier.productName ?? `article${s.nextTier.missing > 1 ? 's' : ''}`} et économisez <strong>{fmt(s.nextTier.amount)}</strong> sur votre commande.</span>}
+          {s.nextTier && <span style={{ fontSize: 13, padding: '10px 12px', background: 'rgba(226,167,94,.12)', border: '1px solid #5A4A34', color: 'var(--ink)', lineHeight: 1.4 }}>Ajoutez {s.nextTier.missing} {s.nextTier.productName ?? `article${s.nextTier.missing > 1 ? 's' : ''}`} et économisez <strong>{fmt(s.nextTier.amount)}</strong> sur votre commande.</span>}
           <button className="btn btn-primary" disabled={s.count === 0} onClick={() => go(PATHS.checkout)} style={{ opacity: s.count === 0 ? 0.4 : 1 }}>Commander</button>
           <button className="btn btn-outline" style={{ height: 50 }} onClick={() => go(PATHS.cart)}>Voir le panier</button>
         </div>
@@ -222,21 +240,21 @@ export function Overlays() {
       {/* Menu mobile */}
       <div
         aria-hidden={!s.menu}
-        style={{ position: 'fixed', inset: 0, zIndex: 80, background: '#0B0B0B', color: '#F5F5F3', display: 'flex', flexDirection: 'column', padding: '10px 20px 32px', opacity: s.menu ? 1 : 0, pointerEvents: s.menu ? 'auto' : 'none', transition: 'opacity .35s ease', visibility: s.menu ? 'visible' : 'hidden', overflowY: 'auto' }}
+        style={{ position: 'fixed', inset: 0, zIndex: 80, background: '#0E0D0C', color: '#F1E9DC', display: 'flex', flexDirection: 'column', padding: '10px 20px 32px', opacity: s.menu ? 1 : 0, pointerEvents: s.menu ? 'auto' : 'none', transition: 'opacity .35s ease', visibility: s.menu ? 'visible' : 'hidden', overflowY: 'auto' }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 44, borderBottom: '1px solid #2A2A2A', paddingBottom: 10 }}>
-          <img src="/logo-white.png" alt="Vasyciao" height={40} width={61} />
-          <button className="icon-btn" onClick={s.closeAll} aria-label="Fermer le menu" style={{ background: 'transparent', marginRight: -10 }}><CloseIcon color="#F5F5F3" size={20} /></button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, borderBottom: '1px solid #2B241B', paddingBottom: 8 }}>
+          <Logo h={54} />
+          <button className="icon-btn" onClick={s.closeAll} aria-label="Fermer le menu" style={{ background: 'transparent', marginRight: -10 }}><CloseIcon color="#E2A75E" size={22} /></button>
         </div>
         <nav aria-label="Menu mobile" style={{ display: 'flex', flexDirection: 'column', marginTop: 8 }}>
-          {[...NAV, { label: 'Nouveautés', to: shopPath('new') }].map((n) => (
-            <button key={n.label} onClick={() => go(n.to)} style={{ display: 'block', padding: '6px 0', background: 'none', border: 0, borderBottom: '1px solid #2A2A2A', color: '#F5F5F3', cursor: 'pointer', fontFamily: 'var(--display-font)', textTransform: 'uppercase', fontSize: 44, lineHeight: 1.1, textAlign: 'left' }}>
+          {[...NAV, { label: 'Toute la collection', to: shopPath('all'), gold: false }].map((n) => (
+            <button key={n.label} onClick={() => go(n.to)} style={{ display: 'block', padding: '14px 0', background: 'none', border: 0, borderBottom: '1px solid #2B241B', color: n.gold ? '#E2A75E' : '#F1E9DC', cursor: 'pointer', fontFamily: 'var(--display-font)', fontSize: 28, lineHeight: 1.15, textAlign: 'left' }}>
               {n.label}
             </button>
           ))}
-          <button onClick={() => go(PATHS.account)} style={{ textAlign: 'left', background: 'none', border: 0, color: '#F5F5F3', fontFamily: 'var(--mono)', fontSize: 13, padding: '16px 0 0', cursor: 'pointer' }}>MON COMPTE →</button>
+          <button onClick={() => go(PATHS.account)} style={{ textAlign: 'left', background: 'none', border: 0, color: '#C9BBA5', fontSize: 13, letterSpacing: '.2em', padding: '18px 0 0', cursor: 'pointer' }}>MON COMPTE →</button>
         </nav>
-        <button className="btn btn-light" style={{ marginTop: 'auto', height: 52 }} onClick={() => go(PATHS.cart)}>PANIER ({s.count})</button>
+        <button className="btn btn-primary" style={{ marginTop: 'auto', height: 54 }} onClick={() => go(PATHS.cart)}>Panier ({s.count})</button>
       </div>
 
       {/* Recherche */}
@@ -249,7 +267,7 @@ export function Overlays() {
           <input
             ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && results[0]) go(productPath(results[0].id)); }}
-            placeholder="Rechercher une veste, un pull, une robe…" aria-label="Rechercher"
+            placeholder="Rechercher un parfum, une maison…" aria-label="Rechercher"
             style={{ flex: 1, minWidth: 0, height: 48, border: 0, background: 'transparent', fontSize: L.searchFs, fontStretch: '110%', outline: 'none', color: 'var(--ink)' }}
           />
           <button className="icon-btn" onClick={s.closeAll} aria-label="Fermer"><CloseIcon /></button>
@@ -266,8 +284,8 @@ export function Overlays() {
               onMouseLeave={(e) => (e.currentTarget.style.paddingLeft = '0')}
             >
               <span style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <span style={{ fontSize: 15, fontWeight: 600, textTransform: 'uppercase' }}>{p.name}</span>
-                <span style={{ fontSize: 12.5, color: 'var(--graphite)' }}>{p.kind}</span>
+                <span style={{ fontFamily: 'var(--display-font)', fontSize: 19 }}>{p.name}</span>
+                <span style={{ fontSize: 12.5, color: 'var(--graphite)' }}>{p.brand} · {p.kind}</span>
               </span>
               <span style={{ fontSize: 14 }}>{p.hasRange ? 'dès ' : ''}{fmt(p.price)}</span>
             </button>
